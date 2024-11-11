@@ -1,0 +1,7 @@
+{
+  "name": "weeklymenu",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
