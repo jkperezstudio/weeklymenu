@@ -1,2 +1,18 @@
-// For information on how to create your own theme, please see:
-// http://ionicframework.com/docs/theming/
+:root {
+    /* Variables generales, ya existentes */
+
+    /* Añadir estilos para el calendario */
+    --ion-calendar-cell-shape: rect;
+    /* Cambia la forma a rectangular */
+    --ion-calendar-cell-border-radius: 8px;
+    /* Añadir esquinas redondeadas */
+
+    --ion-calendar-cell-text-color: #000000;
+    /* Cambia el color del texto de los días a negro para contraste */
+
+}
+
+.calendar-day.calendar-day-active {
+    border: 1px solid var(--ion-color-base);
+    background: #c2c2c2;
+}

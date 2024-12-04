@@ -117,3 +117,23 @@ ion-note {
 ion-item.selected {
   --color: var(--ion-color-primary);
 }
+
+ion-chip {
+  min-width: 100px;
+  margin-right: 5%;
+}
+
+.side-menu-title {
+  color: #d5d5d5;
+  font-size: 20px;
+  font-weight: 600;
+  margin-left: 12%;
+}
+
+.menu-section {
+  color: #d5d5d5;
+  font-size: 18px;
+  font-weight: 600;
+
+
+}

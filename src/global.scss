@@ -32,6 +32,19 @@
  * https://ionicframework.com/docs/theming/dark-mode
  */
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import "@ionic/angular/css/palettes/dark.always.css";
+@import "@ionic/angular/css/palettes/dark.class.css";
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+
+.icon-upper-bar {
+    margin-left: 5%;
+}
+
+ion-title {
+    color: #e2e2e2;
+}
+
+ion-menu-button {
+    color: #4780e7;
+}

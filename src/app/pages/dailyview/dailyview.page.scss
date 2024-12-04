@@ -1,0 +1,70 @@
+ion-checkbox {
+    --size: 35px;
+    --border-width: 4px; // Grosor del borde que quieres mantener visible y marcado
+    border-radius: 15px; // Cambia a 15px para suavizar las esquinas sin perder el grosor
+    box-shadow: none; // Eliminar sombras adicionales que puedan estar haciendo que se vea desordenado
+
+    // Colores según el score, manteniendo el borde bien visible
+    &.score-1 {
+        --checkbox-background-checked: #f91a30;
+        --checkbox-color-dynamic: #f91a30;
+    }
+
+    &.score-2 {
+        --checkbox-background-checked: #fa691c;
+        --checkbox-color-dynamic: #fa691c;
+    }
+
+    &.score-3 {
+        --checkbox-background-checked: #fce91e;
+        --checkbox-color-dynamic: #fce91e;
+    }
+
+    &.score-4 {
+        --checkbox-background-checked: #c7f91d;
+        --checkbox-color-dynamic: #c7f91d;
+    }
+
+    &.score-5 {
+        --checkbox-background-checked: #07e911;
+        --checkbox-color-dynamic: #07e911;
+    }
+}
+
+ion-checkbox::part(container) {
+    border: var(--border-width) solid var(--checkbox-color-dynamic); // Mantener el borde grueso y del color dinámico según el score
+    border-radius: 15px; // Asegúrate de que tenga la misma propiedad para evitar conflicto de bordes
+}
+
+.mealtype {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.meal {
+    font-size: 20px;
+}
+
+.notmealyet {
+    font-size: 20px;
+    font-style: italic;
+    color: #616e7e
+}
+
+
+.meal-done h2,
+.meal-done p {
+    font-size: 20px;
+    text-decoration: line-through;
+    color: grey;
+}
+
+.todaysmealstittle {
+    size: 22px;
+    font-weight: 100;
+    align-self: center;
+}
+
+.todaysdate {
+    align-self: center;
+}

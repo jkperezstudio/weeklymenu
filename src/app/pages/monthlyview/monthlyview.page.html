@@ -1,0 +1,17 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <img class="icon-upper-bar" src="assets/sidebaricons/month.png" slot="start" width="32" height="32" />
+    <ion-title>Monthly View</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+
+<ion-content *ngIf="isCalendarReady">
+  <ion-datetime presentation="date" [value]="[2024-12-05]" firstDayOfWeek="1" (ionChange)="selectDay($event)"
+    [highlightedDates]="highlightedDates" [value]="currentDay">
+  </ion-datetime>
+</ion-content>

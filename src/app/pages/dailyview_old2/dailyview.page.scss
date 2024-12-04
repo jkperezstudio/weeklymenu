@@ -1,0 +1,18 @@
+ion-checkbox {
+    --size: 35px;
+    --checkbox-color-dynamic: #616e7e;
+    --checkbox-background-checked: var(--checkbox-color-dynamic);
+}
+
+ion-checkbox::part(container) {
+    border-radius: 10px;
+    border: 5px solid var(--checkbox-color-dynamic);
+}
+
+
+
+.meal-done h2,
+.meal-done p {
+    text-decoration: line-through;
+    color: grey;
+}
