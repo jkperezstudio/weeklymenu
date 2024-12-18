@@ -1,0 +1,198 @@
+ion-content {
+    --overflow: scroll;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+ion-card {
+    margin-top: 20px;
+    height: 95%;
+    width: 95%;
+    justify-self: center;
+    padding: 10px;
+    border-radius: 20px;
+}
+
+ion-item {
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+ion-input.name {
+    margin-top: 5%;
+    margin-bottom: 2%;
+    --border-radius: 10px;
+    --border-width: 2px;
+
+}
+
+.name-score-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+
+ion-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--ion-color-medium);
+}
+
+ion-range {
+    --bar-height: 10px;
+    --bar-border-radius: 5px;
+    --knob-size: 24px;
+    --knob-background: var(--ion-color-primary);
+    margin-left: 2%;
+    --bar-background: #2b2b2b;
+    --bar-background-active: #2b2b2b;
+    --bar-border-radius: 10px;
+    --bar-height: 20px;
+    --knob-size: 42px;
+    --knob-background: var(--ion-color-primary);
+    --knob-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --label-color: var(--ion-color-primary);
+    /* Color del texto */
+    --label-font-size: 16px;
+    /* Tamaño del texto */
+    --label-font-weight: bold;
+    /* Opcional: darle más importancia */
+
+}
+
+ion-range::part(tick) {
+    background: transparent;
+}
+
+
+ion-input.description {
+    height: 100px;
+    margin-top: 2%;
+    margin-bottom: 5%;
+    --border-radius: 10px;
+    --border-width: 2px;
+}
+
+ion-input.url {
+    margin-top: 2%;
+    margin-bottom: 5%;
+    --border-radius: 10px;
+    --border-width: 2px;
+}
+
+.image-thumb-wrapper {
+    width: 90%;
+    height: 320px;
+    display: flex;
+    flex-direction: row;
+    /* Imagen y thumbs en línea */
+    justify-self: center;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.image-placeholder-wrapper {
+    width: 70%;
+    height: 100%;
+    border: 2px dashed var(--ion-color-medium);
+    border-radius: 10px;
+    background-color: #2b2b2b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-placeholder {
+
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.thumbs-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    /* Espacio entre elementos */
+    width: 30%;
+    height: 320px;
+    /* Igual que el placeholder */
+    position: relative;
+    /* Para no mover el botón */
+
+    .thumb-title {
+        margin-top: 5px;
+        /* Evita que se empuje demasiado */
+        margin-bottom: 15px;
+        /* Espacio hacia los thumbs */
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--ion-color-medium);
+        text-align: center;
+    }
+}
+
+.thumb {
+    width: 48px;
+    height: 48px;
+    background-color: #c3c3c3;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+
+.thumb-up {
+    mask-image: url('/assets/thumb-up.svg');
+    -webkit-mask-image: url('/assets/thumb-up.svg');
+}
+
+.thumb-down {
+    mask-image: url('/assets/thumb-down.svg');
+    -webkit-mask-image: url('/assets/thumb-down.svg');
+}
+
+.thumb.selected {
+    transform: scale(1.1);
+    /* Agranda ligeramente el thumb */
+}
+
+.thumb-up.selected {
+    background-color: #4dff4d;
+    /* Verde para thumb-up */
+    mask-image: url('/assets/thumb-up-selected.svg');
+    -webkit-mask-image: url('/assets/thumb-up-selected.svg');
+}
+
+.thumb-down.selected {
+    background-color: #ff4d4d;
+    /* Rojo para thumb-down */
+    mask-image: url('/assets/thumb-down-selected.svg');
+    -webkit-mask-image: url('/assets/thumb-down-selected.svg');
+}
+
+
+.accept-button {
+    width: 100px;
+    height: 80px;
+    --border-radius: 10px;
+    font-size: 14px;
+
+    position: absolute;
+    /* Posiciona el botón al final del contenedor */
+    bottom: 0;
+    /* Lo pega a la parte baja */
+}
+
+ion-action-sheet {
+    z-index: 99999 !important;
+}

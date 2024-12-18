@@ -48,3 +48,15 @@ ion-title {
 ion-menu-button {
     color: #4780e7;
 }
+
+.mat-bottom-sheet-container {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+    background-color: #161616 !important;
+}

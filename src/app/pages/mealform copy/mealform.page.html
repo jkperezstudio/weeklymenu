@@ -1,0 +1,71 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <img class="icon-upper-bar" src="assets/sidebaricons/form.png" slot="start" width="32" height="32" />
+    <ion-title>Meal Form</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Meal Form</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-list>
+    <!-- Campo de Nombre y Score -->
+    <ion-item fill="outline" lines="none">
+      <div class="name-score-wrapper">
+        <!-- Campo de Name -->
+        <ion-textarea class="name" label="Name" labelPlacement="floating" [counter]="true" maxlength="50"
+          placeholder="Enter the meal name... (required)" [formControl]="mealNameControl" required fill="outline">
+        </ion-textarea>
+
+        <!-- Campo de Score -->
+        <ion-range label="Score" [formControl]="scoreControl" min="1" max="5" step="1" snaps="true" ticks="true"
+          [ngStyle]="{'--knob-background': getScoreColor(scoreControl.value)}">
+        </ion-range>
+      </div>
+    </ion-item>
+
+    <!-- Campo de Resumen -->
+    <ion-item lines="none">
+      <ion-textarea class="description" label="Description" fill="outline" [counter]="true" maxlength="250"
+        labelPlacement="floating" placeholder="Add a short description or recipe details... (optional)">
+      </ion-textarea>
+    </ion-item>
+
+    <!-- Campo url-->
+    <ion-item lines="none">
+      <ion-textarea class="url" label="URL" fill="outline" [counter]="true" maxlength="100" labelPlacement="floating"
+        placeholder="Link to the recipe... (optional)">
+      </ion-textarea>
+    </ion-item>
+
+    <!-- Placeholder para la imagen -->
+    <div class="image-placeholder-wrapper" id="image-trigger">
+      <img [src]="selectedImage" alt="Food Placeholder" class="image-placeholder" />
+    </div>
+
+    <ion-toast class="custom-toast" trigger="image-trigger" message="Select an image from:" position="bottom"
+      [buttons]="toastButtons">
+    </ion-toast>
+
+    <!-- Botones thumbs-up y thumbs-down -->
+    <div class="thumbs-container">
+      <ion-button fill="outline" shape="round" class="thumb-button" color="success" (click)="onThumbsUp()">
+        👍
+      </ion-button>
+      <ion-button fill="outline" shape="round" class="thumb-button" color="danger" (click)="onThumbsDown()">
+        👎
+      </ion-button>
+    </div>
+
+    <!-- Botón de Aceptar -->
+    <ion-button class="accept-button" expand="block" [disabled]="!mealNameControl.valid"
+      (click)="saveMeal()">Accept</ion-button>
+  </ion-list>
+</ion-content>

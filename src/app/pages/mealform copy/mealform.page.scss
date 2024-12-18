@@ -1,0 +1,202 @@
+ion-content {
+    --overflow: scroll;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+
+ion-list {
+
+    margin-top: 20px;
+    height: 95%;
+    width: 95%;
+    justify-self: center;
+    padding: 10px;
+    border-radius: 20px;
+    /* Ajusta el padding lateral */
+}
+
+ion-item {
+
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+ion-textarea.name {
+    margin-top: 5%;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --border-radius: 10px;
+    --border-width: 2px;
+}
+
+.name-score-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+
+ion-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--ion-color-medium);
+}
+
+ion-range {
+    --bar-height: 10px;
+    --bar-border-radius: 5px;
+    --knob-size: 24px;
+    --knob-background: var(--ion-color-primary);
+    margin-left: 2%;
+    --bar-background: #2b2b2b;
+    --bar-background-active: #2b2b2b;
+    --bar-border-radius: 10px;
+    --bar-height: 20px;
+    --knob-size: 42px;
+    --knob-background: var(--ion-color-primary);
+    --knob-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --label-color: var(--ion-color-primary);
+    /* Color del texto */
+    --label-font-size: 16px;
+    /* Tamaño del texto */
+    --label-font-weight: bold;
+    /* Opcional: darle más importancia */
+
+}
+
+ion-range::part(tick) {
+    background: transparent;
+}
+
+.thumbs-container {
+    display: flex;
+    justify-content: center;
+    /* Centra los botones */
+    gap: 20px;
+    /* Espacio entre botones */
+    margin: 20px 0;
+    /* Espaciado arriba y abajo */
+}
+
+.thumb-button {
+    --border-radius: 50%;
+    /* Botones redondos */
+    width: 50px;
+    /* Tamaño del botón */
+    height: 50px;
+    font-size: 24px;
+    /* Tamaño del emoji */
+}
+
+
+
+
+ion-textarea.description {
+    height: 100px;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    --border-radius: 10px;
+    --border-width: 2px;
+}
+
+ion-textarea.url {
+    height: 25px;
+    margin-top: 2%;
+    margin-bottom: 10%;
+    --border-radius: 10px;
+    --border-width: 2px;
+}
+
+
+.image-placeholder-wrapper {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    border: 2px dashed var(--ion-color-medium);
+    border-radius: 10px;
+    background-color: #2b2b2b;
+    display: flex;
+    justify-self: center;
+    align-items: center;
+    cursor: pointer;
+    /* Indica que se puede interactuar */
+}
+
+.image-placeholder {
+
+    width: 80%;
+    height: 80%;
+    align-self: center;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+    margin: auto;
+    /* Ajusta la imagen al contenedor */
+}
+
+.image-placeholder-wrapper:hover {
+    border-color: var(--ion-color-primary);
+    /* Cambia de color al pasar el ratón */
+}
+
+ion-toast.custom-toast {
+    --padding-top: 0;
+    /* Elimina el espacio superior */
+    --padding-bottom: 0;
+    /* Elimina el espacio inferior */
+    --min-height: 0;
+    /* Asegura que el toast solo ocupe el espacio de los botones */
+    --border-radius: 20px;
+    --background: #d9d9d9;
+    --box-shadow: 3px 3px 10px 0 rgba(0, 0, 0, 0.2);
+
+}
+
+ion-toast.custom-toast::part(button) {
+    margin-left: 0px;
+    color: var(--ion-color-primary);
+    font-weight: bold;
+}
+
+ion-toast.custom-toast::part(container) {
+    padding: 0;
+    /* Sin padding */
+    height: auto;
+    /* Ajusta automáticamente según el contenido */
+    font-size: 12px;
+    /* Reduce el tamaño del texto */
+    line-height: 1.2;
+    /* Ajusta el espacio entre líneas */
+    white-space: normal;
+    /* Permite que el texto se divida en varias líneas */
+}
+
+
+.accept-button {
+    width: 200px;
+    margin-top: 20px;
+    /* Añade un margen superior */
+    justify-self: center;
+    --border-radius: 10px;
+}
+
+//debug
+
+ion-list {
+    border: 1px solid red;
+    /* Para depurar visualmente */
+}
+
+ion-item {
+    border: 1px solid red;
+    /* Para depurar visualmente */
+}
+
+
+ion-textarea,
+ion-range {
+    border: 1px solid blue;
+    /* Para ver si se están renderizando */
+}

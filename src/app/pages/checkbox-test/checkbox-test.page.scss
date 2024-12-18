@@ -1,9 +1,25 @@
-ion-checkbox {
-    --size: 35px;
-    --checkbox-background-checked: #ec158f;
+ion-range {
+    --bar-height: 10px;
+    --bar-border-radius: 5px;
+    --knob-size: 24px;
+    --knob-background: var(--ion-color-primary);
+    margin-left: 2%;
+    --bar-background: #2b2b2b;
+    --bar-background-active: #2b2b2b;
+    --bar-border-radius: 10px;
+    --bar-height: 20px;
+    --knob-size: 42px;
+    --knob-background: var(--ion-color-primary);
+    --knob-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --label-color: var(--ion-color-primary);
+    /* Color del texto */
+    --label-font-size: 16px;
+    /* Tamaño del texto */
+    --label-font-weight: bold;
+    /* Opcional: darle más importancia */
+
 }
 
-ion-checkbox::part(container) {
-    border-radius: 10px;
-    border: 5px solid #ec158f;
+ion-range::part(tick) {
+    background: transparent;
 }

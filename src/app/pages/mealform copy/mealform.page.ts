@@ -1,9 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
-import { MatBottomSheet } from '@angular/material/bottom-sheet';
-import { ImageOptionsSheetComponent } from '../../image-options-sheet/image-options-sheet.component';
+import { IonicModule, ToastController } from '@ionic/angular';
 
 
 @Component({
@@ -20,47 +18,27 @@ export class MealformPage {
   scoreControl = new FormControl(3);
   descriptionControl = new FormControl('');
   urlControl = new FormControl('')
-  thumbUpSelected: boolean = false;
-  thumbDownSelected: boolean = false;
 
-  toggleThumb(thumb: string) {
-    if (thumb === 'up') {
-      this.thumbUpSelected = !this.thumbUpSelected;
-      if (this.thumbUpSelected) {
-        this.thumbDownSelected = false; // Desactiva thumb-down
-      }
-    } else if (thumb === 'down') {
-      this.thumbDownSelected = !this.thumbDownSelected;
-      if (this.thumbDownSelected) {
-        this.thumbUpSelected = false; // Desactiva thumb-up
-      }
-    }
-  }
+  constructor(private toastController: ToastController) { }
 
-
-
-  constructor(private bottomSheet: MatBottomSheet) { }
-
-  openImageOptions() {
-    const bottomSheetRef = this.bottomSheet.open(ImageOptionsSheetComponent);
-
-    bottomSheetRef.afterDismissed().subscribe((result) => {
-      if (result === 'gallery') {
-        this.pickImageFromGallery();
-      } else if (result === 'camera') {
+  public toastButtons = [
+    {
+      text: 'Gallery',
+      handler: () => {
+        this.selectFromGallery();
+      },
+    },
+    {
+      text: 'Camera',
+      handler: () => {
         this.takePhoto();
-      }
-    });
-  }
-
-  // Simulados
-  pickImageFromGallery() {
-    console.log('Gallery option selected');
-  }
-
-  takePhoto() {
-    console.log('Camera option selected');
-  }
+      },
+    },
+    {
+      text: 'Cancel',
+      role: 'cancel',
+    },
+  ];
 
 
   saveMeal() {
@@ -110,7 +88,55 @@ export class MealformPage {
     return !!pattern.test(url);
   }
 
+  async openImageOptions() {
+    const toast = await this.toastController.create({
+      message: 'Select an image from:',
+      position: 'bottom', // O 'top', según prefieras
+      buttons: [
+        {
+          text: 'Gallery',
+          handler: () => {
+            this.selectFromGallery();
+          },
+        },
+        {
+          text: 'Camera',
+          handler: () => {
+            this.takePhoto();
+          },
+        },
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+      ],
+    });
 
+    await toast.present();
+  }
+
+
+  selectFromGallery() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.addEventListener('change', (event: any) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          this.selectedImage = reader.result as string;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+    input.click();
+  }
+
+  takePhoto() {
+    console.log('Take a photo (to be implemented later)');
+    // Aquí implementarás la cámara más adelante
+  }
 
   onThumbsUp() {
     console.log('Thumbs up clicked!');

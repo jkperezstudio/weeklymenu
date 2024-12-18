@@ -1,0 +1,14 @@
+<div class="bottom-sheet-container">
+  <h3>Select an image from:</h3>
+  <ul class="options-list">
+    <li class="option-item" (click)="onOption('gallery')">
+      <ion-icon name="images-outline"></ion-icon> Select from Gallery
+    </li>
+    <li class="option-item" (click)="onOption('camera')">
+      <ion-icon name="camera-outline"></ion-icon> Take a Photo
+    </li>
+    <li class="option-item cancel" (click)="onClose()">
+      <ion-icon name="close"></ion-icon> Cancel
+    </li>
+  </ul>
+</div>

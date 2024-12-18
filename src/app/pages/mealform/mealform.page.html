@@ -1,5 +1,8 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
     <img class="icon-upper-bar" src="assets/sidebaricons/form.png" slot="start" width="32" height="32" />
     <ion-title>Meal Form</ion-title>
   </ion-toolbar>
@@ -8,7 +11,58 @@
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">mealform</ion-title>
+      <ion-title size="large">Meal Form</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <ion-card>
+    <!-- Campo de Nombre y Score -->
+    <ion-item fill="outline" lines="none">
+      <div class="name-score-wrapper">
+        <!-- Campo de Name -->
+        <ion-input class="name" label="Name" labelPlacement="floating" maxlength="50"
+          placeholder="Enter the meal name... (required)" [formControl]="mealNameControl" required fill="outline">
+        </ion-input>
+
+        <!-- Campo de Score -->
+        <ion-range label="Score" [formControl]="scoreControl" min="1" max="5" step="1" snaps="true" ticks="true"
+          [ngStyle]="{'--knob-background': getScoreColor(scoreControl.value)}">
+        </ion-range>
+      </div>
+    </ion-item>
+
+    <!-- Campo de Resumen -->
+    <ion-item lines="none">
+      <ion-input class="description" label="Description" fill="outline" maxlength="250" labelPlacement="floating"
+        placeholder="Add a short description or recipe details... (optional)">
+      </ion-input>
+    </ion-item>
+
+    <!-- Campo url-->
+    <ion-item lines="none">
+      <ion-input class="url" label="URL" fill="outline" maxlength="100" labelPlacement="floating"
+        placeholder="Link to the recipe... (optional)">
+      </ion-input>
+    </ion-item>
+
+
+    <div class="image-thumb-wrapper">
+      <div class="image-placeholder-wrapper" (click)="openImageOptions()">
+        <img [src]="selectedImage" alt="Food Placeholder" class="image-placeholder" />
+      </div>
+
+
+      <div class="thumbs-container">
+        <p class="thumb-title">YAM <br> OR <br> NAH?</p>
+        <div class="thumb thumb-up" [class.selected]="thumbUpSelected" (click)="toggleThumb('up')"></div>
+        <div class="thumb thumb-down" [class.selected]="thumbDownSelected" (click)="toggleThumb('down')"></div>
+        <ion-button class="accept-button" [disabled]="!mealNameControl.valid" (click)="saveMeal()">
+          Accept
+        </ion-button>
+
+
+      </div>
+    </div>
+
+  </ion-card>
 </ion-content>

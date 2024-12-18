@@ -1,7 +1,17 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>CheckboxTest</ion-title>
+    <ion-title>test</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-checkbox>Themed checkbox</ion-checkbox>
+<ion-content [fullscreen]="true">
+  <ion-card>
+    <ion-card-content>
+      <ion-input>Escribe cualquier</ion-input>
+      <ion-range label="Score" min="1" max="5" step="1" snaps="true" ticks="true"
+        [ngStyle]="{'--knob-background': getScoreColor(scoreControl.value)}">
+      </ion-range>
+
+    </ion-card-content>
+  </ion-card>
+</ion-content>
