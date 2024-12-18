@@ -4,6 +4,7 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { ImageOptionsSheetComponent } from '../../image-options-sheet/image-options-sheet.component';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 
 @Component({
@@ -53,14 +54,37 @@ export class MealformPage {
     });
   }
 
-  // Simulados
-  pickImageFromGallery() {
-    console.log('Gallery option selected');
+  async pickImageFromGallery() {
+    try {
+      const image = await Camera.getPhoto({
+        source: CameraSource.Photos, // Abre la galería
+        resultType: CameraResultType.Uri, // Devuelve la URI
+        quality: 90, // Calidad de la imagen
+        allowEditing: false, // Opcional, no permite editar
+      });
+
+      if (image && image.webPath) {
+        this.selectedImage = image.webPath; // Actualiza el placeholder con la imagen seleccionada
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+    }
   }
 
-  takePhoto() {
-    console.log('Camera option selected');
+
+  async takePhoto() {
+    const image = await Camera.getPhoto({
+      quality: 90,
+      source: CameraSource.Camera, // Abre la cámara directamente
+      resultType: CameraResultType.Uri
+    });
+
+    if (image.webPath) {
+      this.selectedImage = image.webPath; // Mostramos la imagen en la vista
+      console.log('Photo taken:', image.webPath);
+    }
   }
+
 
 
   saveMeal() {

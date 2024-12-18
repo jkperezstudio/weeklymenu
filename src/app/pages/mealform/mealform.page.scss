@@ -96,21 +96,24 @@ ion-input.url {
 }
 
 .image-placeholder-wrapper {
-    width: 70%;
-    height: 100%;
-    border: 2px dashed var(--ion-color-medium);
+    width: 70%; // Mantén el ancho que quieres
+    height: 100%; // Altura completa
     border-radius: 10px;
     background-color: #2b2b2b;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; // Evita que la imagen sobresalga del borde redondeado
 }
 
 .image-placeholder {
-
-    object-fit: contain;
+    width: 100%; // Ocupar todo el ancho del contenedor
+    height: 100%; // Ocupar todo el alto del contenedor
+    object-fit: cover; // Llenar el contenedor sin deformar la imagen
     border-radius: 10px;
 }
+
+
 
 .thumbs-container {
     display: flex;
