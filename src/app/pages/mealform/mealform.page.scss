@@ -41,30 +41,49 @@ ion-label {
 }
 
 ion-range {
-    --bar-height: 10px;
-    --bar-border-radius: 5px;
-    --knob-size: 24px;
-    --knob-background: var(--ion-color-primary);
-    margin-left: 2%;
-    --bar-background: #2b2b2b;
-    --bar-background-active: #2b2b2b;
-    --bar-border-radius: 10px;
+    --knob-background: var(--score-color, #ccc); // Gris inicial
+}
+
+ion-range[ng-reflect-value="null"] {
+    --knob-background: #ccc;
+}
+
+ion-range {
     --bar-height: 20px;
+    --bar-border-radius: 10px;
     --knob-size: 42px;
     --knob-background: var(--ion-color-primary);
+    /* Este será el color del knob */
+    padding-left: 10%;
+    padding-right: 10%;
+    --bar-background: #2b2b2b;
+    --bar-background-active: #2b2b2b;
     --knob-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     --label-color: var(--ion-color-primary);
     /* Color del texto */
     --label-font-size: 16px;
     /* Tamaño del texto */
     --label-font-weight: bold;
-    /* Opcional: darle más importancia */
+
+
+    /* Por defecto, si no hay score seleccionado */
+    [ng-reflect-value="null"] {
+        --knob-background: #ccc;
+        /* Gris inicial */
+    }
+}
+
+ion-range::part(label) {
+    margin-right: 10%;
 
 }
 
+
+/* Opcional: Ocultar las marcas del rango */
 ion-range::part(tick) {
     background: transparent;
 }
+
 
 
 ion-input.description {

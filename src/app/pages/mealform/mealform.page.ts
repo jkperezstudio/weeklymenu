@@ -17,8 +17,8 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 export class MealformPage {
 
   selectedImage: string = 'assets/placeholder-image.png';
-  mealNameControl = new FormControl('');
-  scoreControl = new FormControl(3);
+  mealNameControl = new FormControl('', { nonNullable: true });
+  scoreControl = new FormControl(null);
   descriptionControl = new FormControl('');
   urlControl = new FormControl('')
   thumbUpSelected: boolean = false;
@@ -90,37 +90,26 @@ export class MealformPage {
   saveMeal() {
     const mealName = this.mealNameControl.value;
     const score = this.scoreControl.value;
-    const description = this.descriptionControl.value;
-    const url = this.urlControl.value;
 
-    if (!mealName || mealName.trim() === '') {
-      console.log('Name is required.');
+    if (!mealName || !score) {
+      console.log('Both Name and Score are required.');
       return;
     }
 
-    if (url && !this.isValidUrl(url)) {
-      console.log('Invalid URL.');
-      return;
-    }
-
-
-    console.log('Meal saved:', { mealName, score, description, url });
+    console.log('Meal saved:', { mealName, score });
     this.mealNameControl.reset();
-    this.scoreControl.setValue(3); // Reseteamos el score al valor por defecto
-    this.descriptionControl.reset();
-    this.urlControl.reset();
+    this.scoreControl.setValue(null); // Reiniciamos el score a null
   }
 
-
   getScoreColor(score: number | null): string {
-    if (!score) return '#ccc'; // Color gris por defecto si no hay valor
+    if (score === null) return '#ccc'; // Gris por defecto
     switch (score) {
       case 1: return '#ff4d4d'; // Rojo
       case 2: return '#ffa64d'; // Naranja
       case 3: return '#ffd24d'; // Amarillo
       case 4: return '#b3ff4d'; // Verde claro
       case 5: return '#4dff4d'; // Verde fuerte
-      default: return '#ccc';    // Gris por defecto
+      default: return '#ccc';    // Gris
     }
   }
 

@@ -33,7 +33,7 @@
 
     <ion-item lines="none">
       <ion-input class="description" label="Description" fill="outline" maxlength="250" labelPlacement="floating"
-        placeholder="Add a short description or recipe details... (optional)">
+        placeholder="Add a short description... (optional)">
       </ion-input>
     </ion-item>
 
@@ -52,12 +52,14 @@
 
 
       <div class="thumbs-container">
-        <p class="thumb-title">YAM <br> OR <br> NAH?</p>
+        <p class="thumb-title">YUM <br> OR <br> NAH?</p>
         <div class="thumb thumb-up" [class.selected]="thumbUpSelected" (click)="toggleThumb('up')"></div>
         <div class="thumb thumb-down" [class.selected]="thumbDownSelected" (click)="toggleThumb('down')"></div>
-        <ion-button class="accept-button" [disabled]="!mealNameControl.valid" (click)="saveMeal()">
-          Accept
+        <ion-button class="accept-button" [disabled]="!mealNameControl.valid || scoreControl.value === null"
+          (click)="saveMeal()">
+          Save Meal
         </ion-button>
+
 
 
       </div>
