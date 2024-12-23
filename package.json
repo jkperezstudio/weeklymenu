@@ -32,6 +32,7 @@
     "@capacitor/keyboard": "6.0.2",
     "@capacitor/status-bar": "6.0.1",
     "@ionic/angular": "^8.0.0",
+    "@ionic/pwa-elements": "^3.3.0",
     "firebase": "^10.14.1",
     "ion2-calendar": "^3.5.0",
     "ionicons": "^7.4.0",

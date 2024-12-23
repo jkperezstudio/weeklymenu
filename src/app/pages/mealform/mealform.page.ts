@@ -5,6 +5,8 @@ import { IonicModule } from '@ionic/angular';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { ImageOptionsSheetComponent } from '../../image-options-sheet/image-options-sheet.component';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 
 @Component({
@@ -19,10 +21,11 @@ export class MealformPage {
   selectedImage: string = 'assets/placeholder-image.png';
   mealNameControl = new FormControl('', { nonNullable: true });
   scoreControl = new FormControl(null);
-  descriptionControl = new FormControl('');
-  urlControl = new FormControl('')
+  descriptionControl = new FormControl('', { nonNullable: true });
+  urlControl = new FormControl('', { nonNullable: true });
   thumbUpSelected: boolean = false;
   thumbDownSelected: boolean = false;
+  isLoading: boolean = false;
 
   toggleThumb(thumb: string) {
     if (thumb === 'up') {
@@ -40,7 +43,7 @@ export class MealformPage {
 
 
 
-  constructor(private bottomSheet: MatBottomSheet) { }
+  constructor(private bottomSheet: MatBottomSheet, private firestore: Firestore) { }
 
   openImageOptions() {
     const bottomSheetRef = this.bottomSheet.open(ImageOptionsSheetComponent);
@@ -57,49 +60,105 @@ export class MealformPage {
   async pickImageFromGallery() {
     try {
       const image = await Camera.getPhoto({
-        source: CameraSource.Photos, // Abre la galería
-        resultType: CameraResultType.Uri, // Devuelve la URI
-        quality: 90, // Calidad de la imagen
-        allowEditing: false, // Opcional, no permite editar
+        source: CameraSource.Photos,
+        resultType: CameraResultType.DataUrl, // Devuelve la imagen en formato base64
+        quality: 90,
       });
 
-      if (image && image.webPath) {
-        this.selectedImage = image.webPath; // Actualiza el placeholder con la imagen seleccionada
+      if (image.dataUrl) {
+        this.selectedImage = image.dataUrl; // Actualizamos solo si se seleccionó una imagen
       }
     } catch (error) {
-      console.error('Error selecting image:', error);
+      if (error instanceof Error && error.message.includes('User cancelled photos app')) {
+        console.log('User canceled image selection.');
+      } else {
+        console.error('Error selecting image:', error);
+      }
     }
   }
-
 
   async takePhoto() {
-    const image = await Camera.getPhoto({
-      quality: 90,
-      source: CameraSource.Camera, // Abre la cámara directamente
-      resultType: CameraResultType.Uri
-    });
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        source: CameraSource.Camera, // Abre la cámara
+        resultType: CameraResultType.Uri // Devuelve una URI accesible
+      });
 
-    if (image.webPath) {
-      this.selectedImage = image.webPath; // Mostramos la imagen en la vista
-      console.log('Photo taken:', image.webPath);
+      if (image.webPath) {
+        this.selectedImage = image.webPath; // Muestra la imagen en la vista
+        console.log('Photo webPath:', image.webPath);
+
+        // Obtén el contenido de la imagen como blob
+        const response = await fetch(image.webPath);
+        const blob = await response.blob();
+
+        // Convierte el blob a base64
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          this.selectedImage = base64data; // Almacena la imagen en base64 para subirla
+          console.log('Base64 image:', base64data);
+        };
+        reader.readAsDataURL(blob);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
     }
   }
 
+  async saveMeal() {
 
+    this.isLoading = true;
 
-  saveMeal() {
     const mealName = this.mealNameControl.value;
     const score = this.scoreControl.value;
+    const description = this.descriptionControl.value;
+    const url = this.urlControl.value;
 
-    if (!mealName || !score) {
-      console.log('Both Name and Score are required.');
+    if (!mealName || mealName.trim() === '') {
+      console.log('Name is required.');
+      this.isLoading = false;
       return;
     }
 
-    console.log('Meal saved:', { mealName, score });
-    this.mealNameControl.reset();
-    this.scoreControl.setValue(null); // Reiniciamos el score a null
+    let imageUrl = '';
+    if (this.selectedImage && this.selectedImage.startsWith('data:image')) { // Verificamos si es una imagen válida
+      try {
+        imageUrl = await this.uploadImage(this.selectedImage); // Sube la imagen y obtiene la URL
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        this.isLoading = false;
+        return;
+      }
+    } else {
+      console.log('No valid image to upload.'); // Mensaje opcional
+    }
+
+
+    const mealData = {
+      name: mealName.trim(),
+      score,
+      description: description?.trim() || '',
+      url: url?.trim() || '',
+      thumbsUp: this.thumbUpSelected,
+      thumbsDown: this.thumbDownSelected,
+      image: imageUrl, // Incluye la URL de la imagen en Firestore
+    };
+
+    try {
+      const mealsCollection = collection(this.firestore, 'meals');
+      await addDoc(mealsCollection, mealData);
+      console.log('Meal saved successfully:', mealData);
+      this.resetForm();
+    } catch (error) {
+      console.error('Error saving meal:', error);
+    } finally {
+      this.isLoading = false; // Siempre desactiva el spinner al final
+    }
   }
+
+
 
   getScoreColor(score: number | null): string {
     if (score === null) return '#ccc'; // Gris por defecto
@@ -132,6 +191,38 @@ export class MealformPage {
   onThumbsDown() {
     console.log('Thumbs down clicked!');
   }
+
+  async uploadImage(imageBase64: string): Promise<string> {
+    console.log('Uploading image:', imageBase64); // Depuración
+    const storage = getStorage();
+    const storageRef = ref(storage, `meals/${new Date().getTime()}.jpg`);
+
+    try {
+      if (!imageBase64.startsWith('data:image')) {
+        throw new Error('Invalid image format');
+      }
+      await uploadString(storageRef, imageBase64, 'data_url');
+      const downloadURL = await getDownloadURL(storageRef);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  }
+
+
+
+  resetForm() {
+    this.mealNameControl.reset();
+    this.scoreControl.setValue(null); // Restablece el score
+    this.descriptionControl.reset();
+    this.urlControl.reset();
+    this.thumbUpSelected = false;
+    this.thumbDownSelected = false;
+    this.selectedImage = 'assets/placeholder-image.png'; // Restablece la imagen al placeholder
+  }
+
+
 
 
 }

@@ -10,6 +10,9 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from './environments/environment';
 import { addIcons } from 'ionicons';
 import { cameraOutline, imagesOutline, close } from 'ionicons/icons';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
+
+defineCustomElements(window);
 
 addIcons({
   'camera-outline': cameraOutline,

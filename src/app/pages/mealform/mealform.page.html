@@ -16,6 +16,11 @@
   </ion-header>
 
   <ion-card>
+    <!-- Indicador de carga -->
+    <div class="loading-overlay" *ngIf="isLoading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
     <!-- Campo de Nombre y Score -->
     <ion-item fill="outline" lines="none">
       <div class="name-score-wrapper">
@@ -33,14 +38,14 @@
 
     <ion-item lines="none">
       <ion-input class="description" label="Description" fill="outline" maxlength="250" labelPlacement="floating"
-        placeholder="Add a short description... (optional)">
+        placeholder="Add a short description... (optional)" [formControl]="descriptionControl">
       </ion-input>
     </ion-item>
 
 
     <ion-item lines="none">
       <ion-input class="url" label="URL" fill="outline" maxlength="100" labelPlacement="floating"
-        placeholder="Link to the recipe... (optional)">
+        placeholder="Link to the recipe... (optional)" [formControl]="urlControl">
       </ion-input>
     </ion-item>
 
@@ -55,12 +60,11 @@
         <p class="thumb-title">YUM <br> OR <br> NAH?</p>
         <div class="thumb thumb-up" [class.selected]="thumbUpSelected" (click)="toggleThumb('up')"></div>
         <div class="thumb thumb-down" [class.selected]="thumbDownSelected" (click)="toggleThumb('down')"></div>
-        <ion-button class="accept-button" [disabled]="!mealNameControl.valid || scoreControl.value === null"
+
+        <ion-button class="accept-button" expand="block" [disabled]="!mealNameControl.valid || !scoreControl.value"
           (click)="saveMeal()">
           Save Meal
         </ion-button>
-
-
 
       </div>
     </div>
