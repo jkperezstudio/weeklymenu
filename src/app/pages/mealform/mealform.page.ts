@@ -1,12 +1,16 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { ImageOptionsSheetComponent } from '../../image-options-sheet/image-options-sheet.component';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, doc, getDoc } from '@angular/fire/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { Meal } from 'src/app/interfaces/meal.interface';
+
+
 
 
 @Component({
@@ -20,7 +24,7 @@ export class MealformPage {
 
   selectedImage: string = 'assets/placeholder-image.png';
   mealNameControl = new FormControl('', { nonNullable: true });
-  scoreControl = new FormControl(null);
+  scoreControl = new FormControl<number | null>(null);
   descriptionControl = new FormControl('', { nonNullable: true });
   urlControl = new FormControl('', { nonNullable: true });
   thumbUpSelected: boolean = false;
@@ -41,9 +45,35 @@ export class MealformPage {
     }
   }
 
+  constructor(private bottomSheet: MatBottomSheet, private firestore: Firestore, private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    const mealId = this.route.snapshot.paramMap.get('id');
+    if (mealId) {
+      this.loadMealData(mealId);
+    }
+  }
+
+  async loadMealData(mealId: string) {
+    const mealDoc = doc(this.firestore, `meals/${mealId}`);
+    const mealSnapshot = await getDoc(mealDoc);
+
+    if (mealSnapshot.exists()) {
+      const mealData = mealSnapshot.data() as Meal; // Tipa los datos como 'Meal'
+
+      this.mealNameControl.setValue(mealData.name || '');
+      this.scoreControl.setValue(mealData.score || null);
+      this.descriptionControl.setValue(mealData.description || '');
+      this.urlControl.setValue(mealData.url || '');
+      this.selectedImage = mealData.image || 'assets/placeholder-image.png';
+      this.thumbUpSelected = mealData.thumbsUp || false;
+      this.thumbDownSelected = mealData.thumbsDown || false;
+    } else {
+      console.error('No such meal found!');
+    }
+  }
 
 
-  constructor(private bottomSheet: MatBottomSheet, private firestore: Firestore) { }
 
   openImageOptions() {
     const bottomSheetRef = this.bottomSheet.open(ImageOptionsSheetComponent);
@@ -210,8 +240,6 @@ export class MealformPage {
     }
   }
 
-
-
   resetForm() {
     this.mealNameControl.reset();
     this.scoreControl.setValue(null); // Restablece el score
@@ -221,9 +249,6 @@ export class MealformPage {
     this.thumbDownSelected = false;
     this.selectedImage = 'assets/placeholder-image.png'; // Restablece la imagen al placeholder
   }
-
-
-
 
 }
 
