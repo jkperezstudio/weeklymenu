@@ -1,0 +1,19 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>{{ meal?.name ? 'Edit Meal' : 'Add Meal' }}</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-item>
+      <ion-label position="stacked">Meal Name</ion-label>
+      <ion-input [(ngModel)]="mealName" placeholder="Enter meal name"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-label position="stacked">Score</ion-label>
+      <ion-range min="1" max="5" step="1" [(ngModel)]="mealScore">
+        <ion-label slot="start">1</ion-label>
+        <ion-label slot="end">5</ion-label>
+      </ion-range>
+    </ion-item>
+    <ion-button expand="full" (click)="saveMeal()">Save</ion-button>
+  </ion-card-content>
+</ion-card>

@@ -40,10 +40,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/mealform/mealform.page').then(m => m.MealformPage)
   },
   {
-    path: 'mealform/:id',
-    loadComponent: () => import('./pages/mealform/mealform.page').then(m => m.MealformPage)
-  },
-  {
     path: 'mealdb',
     loadComponent: () => import('./pages/mealdb/mealdb.page').then(m => m.MealdbPage)
   },
