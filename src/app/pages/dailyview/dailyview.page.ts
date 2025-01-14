@@ -18,6 +18,7 @@ export class DailyviewPage implements OnInit {
 
     ngOnInit() {
         this.meals.forEach(meal => {
+            this.mealDoneControls[meal.id] = new FormControl(meal.done);
         });
 
 
