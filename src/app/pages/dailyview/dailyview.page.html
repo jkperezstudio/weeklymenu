@@ -11,7 +11,10 @@
 <ion-content>
     <ion-card>
         <ion-card-header>
-            <ion-card-title>Today's Meals</ion-card-title>
+            <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
+
+            <h3 class="todaysdate">{{ formattedDate }}</h3>
+
         </ion-card-header>
 
         <ion-card-content>
@@ -19,15 +22,13 @@
                 <ion-item-sliding *ngIf="meal && meal.name; else emptyMeal">
                     <ion-item>
 
-                        <ion-checkbox slot="end" [checked]="meal.done"
-                            (ionChange)="toggleMealDone(meal)"></ion-checkbox>
-
-
-
-
+                        <ion-checkbox slot="end" [checked]="meal.done" (ionChange)="toggleMealDone(meal)"
+                            [ngClass]="getColorClass(meal)">
+                        </ion-checkbox>
 
                         <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}">
-                            <h2>{{ meal.name }}</h2>
+                            <h1 class="mealtype">{{ meal.mealtype}}</h1>
+                            <h2 class="meal">{{ meal.name }}</h2>
                             <p *ngIf="meal.description">{{ meal.description }}</p>
                         </ion-label>
                     </ion-item>
@@ -39,11 +40,19 @@
                 <ng-template #emptyMeal>
                     <ion-item (click)="openMealForm(meal)">
                         <ion-label>
-                            <h2>Add Meal</h2>
+                            <h1 class="mealtype">{{ meal.mealtype}}</h1>
+                            <h2 class="notmealyet">Add Meal</h2>
                         </ion-label>
                     </ion-item>
                 </ng-template>
             </div>
+
+            <ion-button expand="full" [disabled]="!isDayComplete()" (click)="finalizeDay()">
+                Finalize Day
+            </ion-button>
+
+
+
         </ion-card-content>
     </ion-card>
 </ion-content>
