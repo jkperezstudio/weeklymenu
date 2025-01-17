@@ -129,3 +129,26 @@ ion-range::part(label) {
 ion-range::part(tick) {
     background: transparent;
 }
+
+.modal-container {
+    position: relative;
+    /* Padre con posición relativa */
+    padding: 1rem;
+}
+
+.suggestion-list {
+    position: absolute;
+    /* Para flotar dentro del contenedor */
+    top: 4.5rem;
+    /* Ajusta para que quede debajo del input */
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    z-index: 999;
+    max-height: 200px;
+    /* o lo que quieras */
+    overflow-y: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}

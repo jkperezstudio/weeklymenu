@@ -4,7 +4,7 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonItem, IonLabel, IonItemOption, IonItemSliding, IonItemOptions, AlertController, IonCheckbox, IonButton, IonFooter, IonList, IonModal, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle, } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
-import { Firestore, collection, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, doc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 
 @Component({
     selector: 'app-dailyview',
@@ -19,6 +19,8 @@ export class DailyviewPage implements OnInit {
     month: number = 0;
     year: number = 0;
     formattedDate: string = '';
+    allMealNames: string[] = [];
+
 
     constructor(private alertController: AlertController, private route: ActivatedRoute, private firestore: Firestore) { }
 
@@ -68,6 +70,22 @@ export class DailyviewPage implements OnInit {
                 });
             }
 
+            try {
+                const mealsRef = collection(this.firestore, 'meals');
+                const querySnap = await getDocs(mealsRef);
+
+                this.allMealNames = [];
+                querySnap.forEach(docSnap => {
+                    const data = docSnap.data() as any;
+                    if (data.name) {
+                        this.allMealNames.push(data.name);
+                    }
+                });
+                console.log('Nombres de comidas cargados:', this.allMealNames);
+            } catch (error) {
+                console.error('Error cargando comidas:', error);
+            }
+
 
             // Inicializamos los controles del formulario de las comidas
             this.meals.forEach(meal => {
@@ -110,21 +128,33 @@ export class DailyviewPage implements OnInit {
 
     closeModal() {
         this.isModalOpen = false;
+        this.suggestions = [];
     }
 
     onModalDismiss(event: any) {
         console.log('Modal dismissed:', event);
         this.isModalOpen = false;
-
+        this.suggestions = [];
     }
 
     filterSuggestions() {
-        // Simula la búsqueda en la base de datos
-        const query = this.currentMeal.name.toLowerCase();
-        this.suggestions = this.meals
-            .map(m => m.name)
-            .filter(name => name.toLowerCase().includes(query) && name !== this.currentMeal.name);
+        const query = this.currentMeal.name?.trim().toLowerCase() || '';
+        // Si el usuario lo borra todo, vaciamos sugerencias
+        if (!query) {
+            this.suggestions = [];
+            return;
+        }
+        this.suggestions = this.allMealNames
+            .filter(name => name.toLowerCase().includes(query));
     }
+
+
+    selectSuggestion(suggestion: string) {
+        this.currentMeal.name = suggestion;
+        this.suggestions = []; // Oculta la lista tras seleccionar
+    }
+
+
 
     setSuggestion() {
         // Actualizamos el rango al seleccionar una sugerencia
