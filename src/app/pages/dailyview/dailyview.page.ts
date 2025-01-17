@@ -6,9 +6,6 @@ import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
 import { ActivatedRoute } from '@angular/router';
 import { Firestore, collection, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
 
-
-
-
 @Component({
     selector: 'app-dailyview',
     templateUrl: './dailyview.page.html',
@@ -22,7 +19,6 @@ export class DailyviewPage implements OnInit {
     month: number = 0;
     year: number = 0;
     formattedDate: string = '';
-
 
     constructor(private alertController: AlertController, private route: ActivatedRoute, private firestore: Firestore) { }
 
@@ -94,17 +90,13 @@ export class DailyviewPage implements OnInit {
 
     static dayScores: { [date: string]: { score: number; color: string } } = {};
 
-
-
-
-
     openMealForm(meal: Meal) {
         this.currentMeal = meal
             ? { ...meal }
             : {
                 id: '',
                 name: '',
-                score: 1, // Valor por defecto
+                score: 0, // Valor por defecto
                 done: false,
                 mealtype: 'Custom',
                 description: '',
@@ -122,6 +114,8 @@ export class DailyviewPage implements OnInit {
 
     onModalDismiss(event: any) {
         console.log('Modal dismissed:', event);
+        this.isModalOpen = false;
+
     }
 
     filterSuggestions() {
@@ -200,59 +194,19 @@ export class DailyviewPage implements OnInit {
             const dateKey = `${this.year}-${this.month}-${this.day}`;
             const dayDoc = doc(collection(this.firestore, 'dailyScores'), dateKey);
 
-            try {
-                // Referencia a la colección y al documento específico
-                const scoresCollection = collection(this.firestore, 'dailyScores');
-                const dayDoc = doc(scoresCollection, dateKey);
+            await setDoc(dayDoc, {
+                score: averageScore,
+                color: color,
+                year: this.year,
+                month: this.month,
+                day: this.day,
+                isComplete: true,
+                meals: this.meals // Ahora sí, con todos los cambios
+            }, { merge: true }); // Para no machacar nada externo si lo hubiera
 
-                // Guardar el score, el color y la información de las comidas en Firestore
-                await setDoc(dayDoc, {
-                    score: averageScore,
-                    color: color,
-                    year: this.year,
-                    month: this.month,
-                    day: this.day,
-                    isComplete: true, // Marcar como día completado
-                    meals: this.meals
-                });
-
-
-                // Mostrar alerta
-                let colorName = '';
-                switch (color) {
-                    case '#07e911':
-                        colorName = 'green';
-                        break;
-                    case '#c7f91d':
-                        colorName = 'light green';
-                        break;
-                    case '#fce91e':
-                        colorName = 'yellow';
-                        break;
-                    case '#fa691c':
-                        colorName = 'orange';
-                        break;
-                    case '#f91a30':
-                        colorName = 'red';
-                        break;
-                    default:
-                        colorName = 'unknown';
-                }
-
-                const alert = await this.alertController.create({
-                    header: 'Day Summary',
-                    message: `The average score for today is: ${averageScore.toFixed(1)} (${colorName})`,
-                    buttons: ['OK']
-                });
-
-                await alert.present();
-
-            } catch (error) {
-                console.error('Error guardando en Firestore:', error);
-            }
+            // Alert con el resumen...
         }
     }
-
 
 
     calculateAverageScore(): number {
@@ -271,61 +225,65 @@ export class DailyviewPage implements OnInit {
 
     getColorByScore(score: number): string {
         // Devolver el color basado en la puntuación
-        if (score >= 4.5) return '#07e911';
-        if (score >= 3.5) return '#c7f91d';
-        if (score >= 2.5) return '#fce91e';
-        if (score >= 1.5) return '#fa691c';
-        return '#f91a30';
+        if (score === 0) return '#999999';
+        if (score >= 4.5) return '#4dff4d';
+        if (score >= 3.5) return '#b3ff4d';
+        if (score >= 2.5) return '#ffd24d';
+        if (score >= 1.5) return '#ffa74d';
+        return '#ff4d4d';
     }
 
     saveDayDataToFirebase() {
         const docRef = doc(this.firestore, 'dailyScores', `${this.year}-${this.month}-${this.day}`);
 
-        getDoc(docRef)
-            .then((docSnap) => {
-                if (docSnap.exists()) {
-                    const existingData = docSnap.data() as FirestoreDayData;
+        getDoc(docRef).then((docSnap) => {
+            // 1. "Sanitizar" los meals (si algo es undefined => null)
+            const sanitizedMeals = this.meals.map((meal) => ({
+                ...meal,
+                recipe: meal.recipe ?? null,
+                image: meal.image ?? null,
+                url: meal.url ?? null,
+                description: meal.description ?? null,
+                // Añade aquí cualquier propiedad que pueda ser undefined
+            }));
 
-                    // Fusionamos los datos existentes con los nuevos
-                    const updatedData: Partial<FirestoreDayData> = {
-                        ...existingData,
-                        meals: this.meals,
-                        color: existingData.meals?.length
-                            ? existingData.meals.every((meal: Meal) => meal.done)
-                                ? this.getColorByScore(existingData.score || 0) // Color según el score si está completado
-                                : '#484848' // Neutro para días en progreso
-                            : '#222222', // Transparente para días vacíos
-                    };
+            if (docSnap.exists()) {
+                const existingData = docSnap.data() as FirestoreDayData;
 
-                    console.log('Actualizando documento en Firebase:', updatedData);
+                // 2. Fusionar lo anterior con las comidas sanitizadas, sin tocar score/color/isComplete
+                const updatedData: FirestoreDayData = {
+                    ...existingData,
+                    meals: sanitizedMeals,
+                    score: existingData.score,
+                    color: existingData.color,
+                    isComplete: existingData.isComplete
+                };
 
-                    updateDoc(docRef, updatedData)
-                        .then(() => console.log('Documento actualizado correctamente:', updatedData))
-                        .catch((error) => console.error('Error al actualizar el documento:', error));
-                } else {
-                    const initialData: FirestoreDayData = {
-                        year: this.year,
-                        month: this.month,
-                        day: this.day,
-                        meals: this.meals.map((meal: Meal) => ({
-                            ...meal,
-                            name: meal.name || '',
-                            score: meal.score || 0,
-                            done: meal.done || false,
-                        })),
-                        score: 0, // Sin calcular
-                        color: this.meals.length ? '#484848' : '#222222', // Color inicial
-                    };
+                updateDoc(docRef, updatedData)
+                    .then(() => console.log('Documento actualizado (sólo meals):', updatedData))
+                    .catch((error) => console.error('Error al actualizar:', error));
 
-                    console.log('Creando nuevo documento en Firebase:', initialData);
+            } else {
+                // Doc no existía => creamos con valores iniciales
+                const initialData: FirestoreDayData = {
+                    year: this.year,
+                    month: this.month,
+                    day: this.day,
+                    meals: sanitizedMeals,
+                    score: 0,
+                    color: '#222222',
+                    isComplete: false
+                };
 
-                    setDoc(docRef, initialData)
-                        .then(() => console.log('Documento creado correctamente:', initialData))
-                        .catch((error) => console.error('Error al crear documento:', error));
-                }
-            })
-            .catch((error) => console.error('Error al verificar si el documento existe:', error));
+                setDoc(docRef, initialData)
+                    .then(() => console.log('Documento creado (día nuevo):', initialData))
+                    .catch((error) => console.error('Error al crear doc:', error));
+            }
+        })
+            .catch((error) => console.error('Error al leer doc:', error));
     }
+
+
 
 
 

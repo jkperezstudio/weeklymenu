@@ -6,28 +6,28 @@ ion-checkbox {
 
     // Colores según el score, manteniendo el borde bien visible
     &.score-1 {
-        --checkbox-background-checked: #f91a30;
-        --checkbox-color-dynamic: #f91a30;
+        --checkbox-background-checked: #ff4d4d;
+        --checkbox-color-dynamic: #ff4d4d;
     }
 
     &.score-2 {
-        --checkbox-background-checked: #fa691c;
-        --checkbox-color-dynamic: #fa691c;
+        --checkbox-background-checked: #ffa74d;
+        --checkbox-color-dynamic: #ffa74d;
     }
 
     &.score-3 {
-        --checkbox-background-checked: #fce91e;
-        --checkbox-color-dynamic: #fce91e;
+        --checkbox-background-checked: #ffd24d;
+        --checkbox-color-dynamic: #ffd24d;
     }
 
     &.score-4 {
-        --checkbox-background-checked: #c7f91d;
-        --checkbox-color-dynamic: #c7f91d;
+        --checkbox-background-checked: #b3ff4d;
+        --checkbox-color-dynamic: #b3ff4d;
     }
 
     &.score-5 {
-        --checkbox-background-checked: #07e911;
-        --checkbox-color-dynamic: #07e911;
+        --checkbox-background-checked: #4dff4d;
+        --checkbox-color-dynamic: #4dff4d;
     }
 }
 
