@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonItem, IonLabel, IonItemOption, IonItemSliding, IonItemOptions, AlertController, IonCheckbox, IonButton } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonItem, IonLabel, IonItemOption, IonItemSliding, IonItemOptions, AlertController, IonCheckbox, IonButton, IonFooter, IonList, IonModal, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle, } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
-import { Firestore, collection, doc, setDoc, getDoc } from '@angular/fire/firestore';
-import { updateDoc } from 'firebase/firestore';
+import { Firestore, collection, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
+
 
 
 
@@ -14,7 +14,7 @@ import { updateDoc } from 'firebase/firestore';
     templateUrl: './dailyview.page.html',
     styleUrls: ['./dailyview.page.scss'],
     standalone: true,
-    imports: [IonButton, IonCheckbox, IonItemOptions, IonItemSliding, IonItemOption, IonLabel, IonItem, IonCardContent, IonCardHeader, IonCardTitle, IonCard, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, ReactiveFormsModule]
+    imports: [IonModal, IonList, IonFooter, IonButton, IonCheckbox, IonItemOptions, IonItemSliding, IonItemOption, IonLabel, IonItem, IonCardContent, IonCardHeader, IonCardTitle, IonCard, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, ReactiveFormsModule, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle]
 })
 export class DailyviewPage implements OnInit {
 
@@ -81,78 +81,102 @@ export class DailyviewPage implements OnInit {
     }
 
 
-
+    isModalOpen = false;
+    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', description: '', reminder: false };
+    suggestions: string[] = [];
     mealDoneControls: { [key: string]: FormControl } = {};
 
     meals: Meal[] = [
-        { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false },
-        { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false },
-        { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false }
+        { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
+        { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false, reminder: false },
+        { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false, reminder: false }
     ];
 
     static dayScores: { [date: string]: { score: number; color: string } } = {};
 
 
-    async presentMealAlert(meal: Meal) {
-        const alert = await this.alertController.create({
-            header: meal.name ? 'Edit Meal' : 'Add Meal',
-            inputs: [
-                {
-                    name: 'name',
-                    type: 'text',
-                    placeholder: 'Meal name',
-                    value: meal.name || ''
-                },
-                {
-                    name: 'score',
-                    type: 'number',
-                    placeholder: 'Score (1-5)',
-                    min: 1,
-                    max: 5,
-                    value: meal.score || 1
-                }
-            ],
-            buttons: [
-                {
-                    text: 'Cancel',
-                    role: 'cancel',
-                    handler: () => {
-                        console.log('Edit cancelled');
-                    }
-                },
-                {
-                    text: 'Save',
-                    handler: (data) => {
-                        meal.name = data.name;
-                        meal.score = parseInt(data.score, 10);
-
-                        // Subir los datos actualizados a Firebase
-                        this.saveDayDataToFirebase();
-                        console.log("Meal saved and data updated in Firebase:", meal);
-                    }
-                }
-            ]
-        });
-
-        await alert.present();
-    }
 
 
 
     openMealForm(meal: Meal) {
-        // Aquí abrirías el formulario para añadir o editar la comida.
-        if (meal.name === '') {
-            this.presentMealAlert(meal);
-            console.log("Abriendo formulario vacío para añadir nueva comida.");
-        } else {
-            console.log("Comida ya existente:", meal);
+        this.currentMeal = meal
+            ? { ...meal }
+            : {
+                id: '',
+                name: '',
+                score: 1, // Valor por defecto
+                done: false,
+                mealtype: 'Custom',
+                description: '',
+                reminder: false,
+            };
+        console.log('Current meal on opening modal:', this.currentMeal);
+        this.isModalOpen = true;
+    }
+
+
+
+    closeModal() {
+        this.isModalOpen = false;
+    }
+
+    onModalDismiss(event: any) {
+        console.log('Modal dismissed:', event);
+    }
+
+    filterSuggestions() {
+        // Simula la búsqueda en la base de datos
+        const query = this.currentMeal.name.toLowerCase();
+        this.suggestions = this.meals
+            .map(m => m.name)
+            .filter(name => name.toLowerCase().includes(query) && name !== this.currentMeal.name);
+    }
+
+    setSuggestion() {
+        // Actualizamos el rango al seleccionar una sugerencia
+        const selectedMeal = this.meals.find(m => m.name === this.currentMeal.name);
+        if (selectedMeal) {
+            this.currentMeal.score = selectedMeal.score;
         }
     }
+
+    saveMeal() {
+        console.log('Saving meal:', this.currentMeal);
+
+        if (!this.currentMeal.name || !this.currentMeal.score) {
+            console.error('Meal name and score are required');
+            return;
+        }
+
+        if (this.currentMeal.id) {
+            // Actualizar comida existente
+            const index = this.meals.findIndex(m => m.id === this.currentMeal.id);
+            if (index !== -1) {
+                this.meals[index] = { ...this.currentMeal };
+            }
+        } else {
+            // Crear nueva comida
+            const newMeal: Meal = {
+                ...this.currentMeal,
+                id: (this.meals.length + 1).toString(), // Generar un ID único
+                mealtype: this.currentMeal.mealtype || 'Custom'
+            };
+            this.meals.push(newMeal);
+        }
+
+        console.log('Meals updated:', this.meals);
+
+        // Guarda los datos en Firestore
+        this.saveDayDataToFirebase();
+        this.closeModal();
+    }
+
+
 
     editMeal(meal: Meal) {
         // Este método se activa con el deslizamiento y también llama a openMealForm para editar.
         console.log("Editando comida existente:", meal);
-        this.presentMealAlert(meal);
+        this.openMealForm(meal);
     }
 
     toggleMealDone(meal: Meal): void {
@@ -174,6 +198,7 @@ export class DailyviewPage implements OnInit {
             const averageScore = this.calculateAverageScore();
             const color = this.getColorByScore(averageScore);
             const dateKey = `${this.year}-${this.month}-${this.day}`;
+            const dayDoc = doc(collection(this.firestore, 'dailyScores'), dateKey);
 
             try {
                 // Referencia a la colección y al documento específico
@@ -188,12 +213,7 @@ export class DailyviewPage implements OnInit {
                     month: this.month,
                     day: this.day,
                     isComplete: true, // Marcar como día completado
-                    meals: this.meals.map(meal => ({
-                        mealtype: meal.mealtype,
-                        name: meal.name,
-                        score: meal.score,
-                        done: meal.done
-                    }))
+                    meals: this.meals
                 });
 
 

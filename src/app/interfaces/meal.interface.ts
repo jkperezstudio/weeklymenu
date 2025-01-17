@@ -4,6 +4,7 @@ export interface Meal {
     name: string;
     score: number;
     done: boolean;
+    reminder: boolean;
     description?: string;
     recipe?: string;
     url?: string;

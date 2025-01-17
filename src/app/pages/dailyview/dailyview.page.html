@@ -55,4 +55,56 @@
 
         </ion-card-content>
     </ion-card>
+
+    <ion-modal #mealModal [isOpen]="isModalOpen" (didDismiss)="onModalDismiss($event)">
+        <ng-template>
+            <ion-header>
+                <ion-toolbar>
+                    <ion-title>{{ currentMeal?.name ? 'Edit Meal' : 'Add Meal' }}</ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button (click)="closeModal()">Close</ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+
+            <ion-content>
+                <ion-list>
+                    <ion-item>
+                        <ion-label position="floating">Meal Name</ion-label>
+                        <ion-input name="mealName" placeholder="Enter meal name" [(ngModel)]="currentMeal.name"
+                            (ionChange)="filterSuggestions()">
+                        </ion-input>
+                    </ion-item>
+
+
+                    <ion-item>
+                        <ion-label>Score</ion-label>
+                        <ion-range label="Score" name="mealScore" min="1" max="5" step="1" snaps="true" ticks="true"
+                            [(ngModel)]="currentMeal.score"
+                            [ngStyle]="{'--knob-background': getColorByScore(currentMeal.score)}">
+                        </ion-range>
+
+                    </ion-item>
+
+                    <ion-item *ngIf="suggestions.length > 0">
+                        <ion-label>Suggestions:</ion-label>
+                        <ion-select [(ngModel)]="currentMeal.name" (ionChange)="setSuggestion()">
+                            <ion-select-option *ngFor="let suggestion of suggestions">{{ suggestion
+                                }}</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+
+                    <ion-item>
+                        <ion-label>Set Reminder</ion-label>
+                        <ion-toggle name="reminderToggle" [(ngModel)]="currentMeal.reminder"></ion-toggle>
+                    </ion-item>
+                </ion-list>
+
+                <ion-footer>
+                    <ion-button expand="block" (click)="saveMeal()">Save</ion-button>
+                </ion-footer>
+            </ion-content>
+        </ng-template>
+    </ion-modal>
+
 </ion-content>
