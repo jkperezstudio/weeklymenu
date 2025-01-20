@@ -19,7 +19,8 @@ export class DailyviewPage implements OnInit {
     month: number = 0;
     year: number = 0;
     formattedDate: string = '';
-    allMealNames: string[] = [];
+    allMealData: { name: string; score: number }[] = [];
+    suggestions: { name: string; score: number }[] = [];
 
 
     constructor(private alertController: AlertController, private route: ActivatedRoute, private firestore: Firestore) { }
@@ -74,17 +75,21 @@ export class DailyviewPage implements OnInit {
                 const mealsRef = collection(this.firestore, 'meals');
                 const querySnap = await getDocs(mealsRef);
 
-                this.allMealNames = [];
+                this.allMealData = [];
                 querySnap.forEach(docSnap => {
                     const data = docSnap.data() as any;
                     if (data.name) {
-                        this.allMealNames.push(data.name);
+                        this.allMealData.push({
+                            name: data.name,
+                            score: data.score || 1
+                        });
                     }
                 });
-                console.log('Nombres de comidas cargados:', this.allMealNames);
+                console.log('Comidas cargadas:', this.allMealData);
             } catch (error) {
                 console.error('Error cargando comidas:', error);
             }
+
 
 
             // Inicializamos los controles del formulario de las comidas
@@ -97,7 +102,6 @@ export class DailyviewPage implements OnInit {
 
     isModalOpen = false;
     currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', description: '', reminder: false };
-    suggestions: string[] = [];
     mealDoneControls: { [key: string]: FormControl } = {};
 
     meals: Meal[] = [
@@ -139,19 +143,24 @@ export class DailyviewPage implements OnInit {
 
     filterSuggestions() {
         const query = this.currentMeal.name?.trim().toLowerCase() || '';
-        // Si el usuario lo borra todo, vaciamos sugerencias
+
         if (!query) {
+            // Si está vacío, no muestras sugerencias
             this.suggestions = [];
             return;
         }
-        this.suggestions = this.allMealNames
-            .filter(name => name.toLowerCase().includes(query));
+
+        // Filtras allMealData (objeto con name, score...)
+        this.suggestions = this.allMealData.filter(item =>
+            item.name.toLowerCase().includes(query)
+        );
     }
 
 
-    selectSuggestion(suggestion: string) {
-        this.currentMeal.name = suggestion;
-        this.suggestions = []; // Oculta la lista tras seleccionar
+    selectSuggestion(suggestion: { name: string; score: number }) {
+        this.currentMeal.name = suggestion.name;
+        this.currentMeal.score = suggestion.score;
+        this.suggestions = []; // Limpia la lista
     }
 
 

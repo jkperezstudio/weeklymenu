@@ -76,11 +76,14 @@
                     </ion-input>
                 </ion-item>
 
-                <ion-list lines="none" *ngIf="suggestions.length > 0" class="suggestion-list">
+                <!-- Lista de sugerencias -->
+                <ion-list *ngIf="suggestions.length > 0" class="suggestion-list">
                     <ion-item button *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
-                        {{ suggestion }}
+                        {{ suggestion.name }}
                     </ion-item>
                 </ion-list>
+
+
 
                 <ion-item class="score" lines="none">
                     <ion-label>Score</ion-label>
