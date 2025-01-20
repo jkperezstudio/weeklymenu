@@ -11,7 +11,7 @@ import { Firestore, collection, doc, setDoc, getDoc, getDocs, updateDoc } from '
     templateUrl: './dailyview.page.html',
     styleUrls: ['./dailyview.page.scss'],
     standalone: true,
-    imports: [IonModal, IonList, IonFooter, IonButton, IonCheckbox, IonItemOptions, IonItemSliding, IonItemOption, IonLabel, IonItem, IonCardContent, IonCardHeader, IonCardTitle, IonCard, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, ReactiveFormsModule, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle]
+    imports: [IonModal, IonList, IonButton, IonCheckbox, IonItemOptions, IonItemSliding, IonItemOption, IonLabel, IonItem, IonCardContent, IonCardHeader, IonCardTitle, IonCard, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, ReactiveFormsModule, IonInput, IonRange, IonToggle]
 })
 export class DailyviewPage implements OnInit {
 
