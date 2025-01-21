@@ -5,6 +5,8 @@ import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonItem, IonLabel, IonItemOption, IonItemSliding, IonItemOptions, AlertController, IonCheckbox, IonButton, IonFooter, IonList, IonModal, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle, } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
 import { Firestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
+import { ModalController, IonicModule } from '@ionic/angular';
+import { DayCompleteModalComponent } from '../../day-complete-modal/day-complete-modal.component';
 
 @Component({
     selector: 'app-dailyview',
@@ -23,7 +25,19 @@ export class DailyviewPage implements OnInit {
     suggestions: { name: string; score: number }[] = [];
 
 
-    constructor(private alertController: AlertController, private route: ActivatedRoute, private firestore: Firestore) { }
+    constructor(private alertController: AlertController, private route: ActivatedRoute, private firestore: Firestore, private modalCtrl: ModalController) { }
+
+    async openModal() {
+        const modal = await this.modalCtrl.create({
+            component: DayCompleteModalComponent,
+            componentProps: {
+                averageScore: 4.5,
+                color: '#4CAF50'
+            }
+        });
+
+        await modal.present();
+    }
 
     ngOnInit() {
         // Obtenemos el parámetro 'day' de la URL
@@ -318,22 +332,21 @@ export class DailyviewPage implements OnInit {
         if (this.isDayComplete()) {
             const averageScore = this.calculateAverageScore();
             const color = this.getColorByScore(averageScore);
-            const dateKey = `${this.year}-${this.month}-${this.day}`;
-            const dayDoc = doc(collection(this.firestore, 'dailyScores'), dateKey);
 
-            await setDoc(dayDoc, {
-                score: averageScore,
-                color: color,
-                year: this.year,
-                month: this.month,
-                day: this.day,
-                isComplete: true,
-                meals: this.meals // Ahora sí, con todos los cambios
-            }, { merge: true }); // Para no machacar nada externo si lo hubiera
+            // ... guardas en Firestore, etc.
 
-            // Alert con el resumen...
+            const modal = await this.modalCtrl.create({
+                component: DayCompleteModalComponent,
+                componentProps: {
+                    averageScore: averageScore.toFixed(1),
+                    color: color
+                }
+            });
+
+            await modal.present();
         }
     }
+
 
 
     calculateAverageScore(): number {

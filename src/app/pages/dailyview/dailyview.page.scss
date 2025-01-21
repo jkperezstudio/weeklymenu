@@ -193,3 +193,15 @@ ion-item {
     --ion-background-color: none;
     /* Según la configuración de Ionic */
 }
+
+.custom-alert .alert-wrapper {
+    background: #ffffff;
+    /* Fondo blanco */
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.custom-alert .alert-message {
+    font-size: 16px;
+    color: #333333;
+}
