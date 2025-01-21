@@ -4,7 +4,7 @@ import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
 import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonItem, IonLabel, IonItemOption, IonItemSliding, IonItemOptions, AlertController, IonCheckbox, IonButton, IonFooter, IonList, IonModal, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle, } from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
-import { Firestore, collection, doc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 
 @Component({
     selector: 'app-dailyview',
@@ -151,9 +151,11 @@ export class DailyviewPage implements OnInit {
         }
 
         // Filtras allMealData (objeto con name, score...)
-        this.suggestions = this.allMealData.filter(item =>
-            item.name.toLowerCase().includes(query)
-        );
+        this.suggestions = this.allMealData
+            .filter(meal => meal.name.toLowerCase().startsWith(query))
+            .sort((a, b) => a.name.localeCompare(b.name)); // Ordena por nombre
+
+
     }
 
 
@@ -173,7 +175,35 @@ export class DailyviewPage implements OnInit {
         }
     }
 
-    saveMeal() {
+    async askToAddMealToDatabase(): Promise<boolean> {
+        return new Promise(async (resolve) => {
+            const alert = await this.alertController.create({
+                header: 'New Meal',
+                message: `The meal "${this.currentMeal.name}" is not in the database. Would you like to add it?`,
+                buttons: [
+                    {
+                        text: 'No Thanks',
+                        role: 'cancel',
+                        handler: () => {
+                            console.log('User chose not to add the meal to the database.');
+                            resolve(false);
+                        }
+                    },
+                    {
+                        text: 'Add',
+                        handler: async () => {
+                            await this.addMealToDatabase();
+                            resolve(true);
+                        }
+                    }
+                ]
+            });
+
+            await alert.present();
+        });
+    }
+
+    async saveMeal() {
         console.log('Saving meal:', this.currentMeal);
 
         if (!this.currentMeal.name || !this.currentMeal.score) {
@@ -182,28 +212,83 @@ export class DailyviewPage implements OnInit {
         }
 
         if (this.currentMeal.id) {
-            // Actualizar comida existente
             const index = this.meals.findIndex(m => m.id === this.currentMeal.id);
             if (index !== -1) {
                 this.meals[index] = { ...this.currentMeal };
             }
         } else {
-            // Crear nueva comida
             const newMeal: Meal = {
                 ...this.currentMeal,
-                id: (this.meals.length + 1).toString(), // Generar un ID único
+                id: (this.meals.length + 1).toString(),
                 mealtype: this.currentMeal.mealtype || 'Custom'
             };
             this.meals.push(newMeal);
         }
 
-        console.log('Meals updated:', this.meals);
+        const mealExists = this.allMealData.some(meal => meal.name.toLowerCase() === this.currentMeal.name.toLowerCase());
+        if (!mealExists) {
+            const userWantsToAdd = await this.askToAddMealToDatabase();
+            if (!userWantsToAdd) {
+                console.log('Meal not added to the database.');
+            }
+        }
 
-        // Guarda los datos en Firestore
-        this.saveDayDataToFirebase();
+        // Ahora sí cerramos el modal después de interactuar con el Alert
         this.closeModal();
+
+        // Guardar en Firestore
+        this.saveDayDataToFirebase();
     }
 
+
+    async addMealToDatabase() {
+        try {
+            const mealsRef = collection(this.firestore, 'meals');
+            const newMealData = {
+                name: this.currentMeal.name,
+                score: this.currentMeal.score,
+                mealtype: this.currentMeal.mealtype || 'Custom',
+                description: '',
+                url: '',
+                image: ''
+            };
+            await addDoc(mealsRef, newMealData);
+            console.log('New meal added to the database:', newMealData);
+
+            // Añadirlo a las sugerencias locales
+            this.allMealData.push(newMealData);
+        } catch (error) {
+            console.error('Error adding meal to the database:', error);
+        }
+    }
+
+    deleteMeal(meal: Meal) {
+        this.alertController.create({
+            header: 'Delete Meal',
+            message: `Are you sure you want to delete "${meal.name}" from today?`,
+            buttons: [
+                {
+                    text: 'Cancel',
+                    role: 'cancel',
+                    handler: () => {
+                        console.log('Deletion canceled');
+                    }
+                },
+                {
+                    text: 'Delete',
+                    role: 'destructive',
+                    handler: () => {
+                        // Filtra la comida de la lista
+                        this.meals = this.meals.filter(m => m.id !== meal.id);
+
+                        // Guarda los cambios en Firestore
+                        this.saveDayDataToFirebase();
+                        console.log(`Meal "${meal.name}" deleted.`);
+                    }
+                }
+            ]
+        }).then(alert => alert.present());
+    }
 
 
     editMeal(meal: Meal) {
@@ -211,6 +296,7 @@ export class DailyviewPage implements OnInit {
         console.log("Editando comida existente:", meal);
         this.openMealForm(meal);
     }
+
 
     toggleMealDone(meal: Meal): void {
         meal.done = !meal.done;
@@ -321,8 +407,6 @@ export class DailyviewPage implements OnInit {
         })
             .catch((error) => console.error('Error al leer doc:', error));
     }
-
-
 
 
 
