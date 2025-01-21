@@ -308,9 +308,11 @@ export class DailyviewPage implements OnInit {
 
 
     isDayComplete(): boolean {
-        // Verificar si todas las comidas están hechas
-        return this.meals.every(meal => meal.done);
+        // Todas las comidas deben tener nombre y estar marcadas como "hechas"
+        return this.meals.every(meal => meal.name && meal.done);
     }
+
+
 
     async finalizeDay() {
         if (this.isDayComplete()) {
@@ -408,10 +410,40 @@ export class DailyviewPage implements OnInit {
             .catch((error) => console.error('Error al leer doc:', error));
     }
 
+    clearMealContent(meal: Meal) {
+        this.alertController.create({
+            header: 'Clear Meal',
+            message: `Are you sure you want to clear the content of "${meal.mealtype}"?`,
+            buttons: [
+                {
+                    text: 'Cancel',
+                    role: 'cancel',
+                    handler: () => {
+                        console.log('Clearing canceled.');
+                    }
+                },
+                {
+                    text: 'Clear',
+                    role: 'destructive',
+                    handler: () => {
+                        meal.name = '';
+                        meal.score = 0;
+                        meal.description = '';
+                        meal.reminder = false;
+
+                        // Guarda los cambios en Firestore
+                        this.saveDayDataToFirebase();
+                        console.log(`Content of "${meal.mealtype}" cleared.`);
+                    }
+                }
+            ]
+        }).then(alert => alert.present());
+    }
+
+
 
 
 }
-
 
 
 
