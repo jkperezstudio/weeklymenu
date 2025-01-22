@@ -1,44 +1,61 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonItem, IonLabel, IonItemOption, IonItemSliding, IonItemOptions, AlertController, IonCheckbox, IonButton, IonFooter, IonList, IonModal, IonSelect, IonSelectOption, IonInput, IonRange, IonToggle, } from '@ionic/angular/standalone';
+import { AlertController, ModalController, GestureController, Gesture } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { Firestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
-import { ModalController, IonicModule } from '@ionic/angular';
 import { DayCompleteModalComponent } from '../../day-complete-modal/day-complete-modal.component';
+import { IonHeader, IonItem, IonLabel, IonButton, IonItemOption, IonItemOptions, IonItemSliding, IonCardContent, IonCardTitle, IonCardHeader, IonCard, IonContent, IonTitle, IonToolbar, IonButtons, IonModal, IonList, IonMenuButton } from "@ionic/angular/standalone";
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+
 
 @Component({
     selector: 'app-dailyview',
     templateUrl: './dailyview.page.html',
     styleUrls: ['./dailyview.page.scss'],
     standalone: true,
-    imports: [IonModal, IonList, IonButton, IonCheckbox, IonItemOptions, IonItemSliding, IonItemOption, IonLabel, IonItem, IonCardContent, IonCardHeader, IonCardTitle, IonCard, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, ReactiveFormsModule, IonInput, IonRange, IonToggle]
+    imports: [IonList, IonModal, IonButtons, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItemSliding, IonItemOptions, IonItemOption, IonButton, IonLabel, IonItem, IonHeader, CommonModule, FormsModule, ReactiveFormsModule, IonMenuButton],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+
 })
-export class DailyviewPage implements OnInit {
+export class DailyviewPage implements OnInit, AfterViewInit {
+
+    @ViewChild('gestureContainer', { static: true }) gestureContainer!: ElementRef;
 
     day: number = 0;
     month: number = 0;
     year: number = 0;
     formattedDate: string = '';
+
     allMealData: { name: string; score: number }[] = [];
     suggestions: { name: string; score: number }[] = [];
 
+    isModalOpen = false;
+    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', description: '', reminder: false };
+    mealDoneControls: { [key: string]: FormControl } = {};
 
-    constructor(private alertController: AlertController, private route: ActivatedRoute, private firestore: Firestore, private modalCtrl: ModalController) { }
+    meals: Meal[] = [
+        { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
+        { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false, reminder: false },
+        { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false, reminder: false }
+    ];
 
-    async openModal() {
-        const modal = await this.modalCtrl.create({
-            component: DayCompleteModalComponent,
-            componentProps: {
-                averageScore: 4.5,
-                color: '#4CAF50'
-            }
-        });
+    static dayScores: { [date: string]: { score: number; color: string } } = {};
 
-        await modal.present();
-    }
+    constructor(
+        private alertController: AlertController,
+        private route: ActivatedRoute,
+        private firestore: Firestore,
+        private modalCtrl: ModalController,
+        private gestureCtrl: GestureController
+    ) { }
 
+    /**
+     * ----------------------------------------------------------------
+     * 1. Ajustamos ngOnInit para solo leer el parámetro y cargar allMealData
+     * ----------------------------------------------------------------
+     */
     ngOnInit() {
         // Obtenemos el parámetro 'day' de la URL
         this.route.paramMap.subscribe(async (params) => {
@@ -53,38 +70,20 @@ export class DailyviewPage implements OnInit {
                 // Si no hay parámetro, usamos la fecha actual
                 const currentDate = new Date();
                 this.year = currentDate.getFullYear();
-                this.month = currentDate.getMonth() + 1; // Recordar que los meses empiezan en 0
+                this.month = currentDate.getMonth() + 1;
                 this.day = currentDate.getDate();
             }
 
-            // Creamos una fecha formateada basada en el día, mes y año recibidos o actuales
+            // Creamos una fecha formateada
             this.formattedDate = new Date(this.year, this.month - 1, this.day).toDateString();
-            console.log('Formatted date:', this.formattedDate);
+            console.log('Formatted date (from route or current):', this.formattedDate);
 
-            // Leer datos de Firestore
-            const dateKey = `${this.year}-${this.month}-${this.day}`;
-            const docRef = doc(this.firestore, 'dailyScores', dateKey);
-            const docSnap = await getDoc(docRef);
+            // Llamamos a loadDayData() para cargar la info de Firestore de este día
+            await this.loadDayData();
 
-            if (docSnap.exists()) {
-                const data = docSnap.data() as FirestoreDayData; // Tipamos los datos usando FirestoreDayData
-                console.log('Datos cargados desde Firestore:', data);
-
-                // Asignamos los valores al componente utilizando los datos cargados desde Firestore
-                this.meals.forEach((meal, index) => {
-                    if (data.meals && data.meals[index]) {
-                        meal.name = data.meals[index].name;
-                        meal.score = data.meals[index].score;
-                        meal.done = data.meals[index].done;
-                        meal.mealtype = data.meals[index].mealtype;
-                        meal.description = data.meals[index].description;
-                        meal.recipe = data.meals[index].recipe;
-                        meal.url = data.meals[index].url;
-                        meal.image = data.meals[index].image;
-                    }
-                });
-            }
-
+            /**
+             * Cargamos también la colección "meals" global para las sugerencias
+             */
             try {
                 const mealsRef = collection(this.firestore, 'meals');
                 const querySnap = await getDocs(mealsRef);
@@ -99,32 +98,158 @@ export class DailyviewPage implements OnInit {
                         });
                     }
                 });
-                console.log('Comidas cargadas:', this.allMealData);
+                console.log('allMealData cargadas:', this.allMealData);
             } catch (error) {
-                console.error('Error cargando comidas:', error);
+                console.error('Error cargando comidas (allMealData):', error);
             }
 
-
-
-            // Inicializamos los controles del formulario de las comidas
+            // Inicializamos los controles del formulario
             this.meals.forEach(meal => {
                 this.mealDoneControls[meal.id] = new FormControl(meal.done);
             });
         });
     }
 
+    /**
+     * ----------------------------------------------------------------
+     * 2. Cargar la info del día (Firestore) en su propia función
+     * ----------------------------------------------------------------
+     */
+    async loadDayData() {
+        try {
+            const dateKey = `${this.year}-${this.month}-${this.day}`;
+            const docRef = doc(this.firestore, 'dailyScores', dateKey);
+            const docSnap = await getDoc(docRef);
 
-    isModalOpen = false;
-    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', description: '', reminder: false };
-    mealDoneControls: { [key: string]: FormControl } = {};
+            if (docSnap.exists()) {
+                const data = docSnap.data() as FirestoreDayData;
+                console.log('Datos cargados desde Firestore:', data);
 
-    meals: Meal[] = [
-        { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
-        { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false, reminder: false },
-        { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false, reminder: false }
-    ];
+                // Reemplazamos "this.meals" con lo que haya en Firestore
+                this.meals = data.meals || [];
+            } else {
+                // Si no hay documento, reiniciamos a las comidas base
+                this.meals = [
+                    { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
+                    { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false, reminder: false },
+                    { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false, reminder: false }
+                ];
+            }
+        } catch (error) {
+            console.error('Error al cargar datos del día:', error);
+        }
+    }
 
-    static dayScores: { [date: string]: { score: number; color: string } } = {};
+    /**
+     * ----------------------------------------------------------------
+     * 3. Configuración del gesto de swipe en ngAfterViewInit 
+     *    usando onEnd en lugar de onMove
+     * ----------------------------------------------------------------
+     */
+    ngAfterViewInit() {
+        const element = this.gestureContainer.nativeElement;
+
+        let currentX = 0;   // Desplazamiento en cada onMove
+        let startX = 0;     // Punto de arranque
+        let threshold = 50; // Umbral para cambiar de día
+
+        const gesture: Gesture = this.gestureCtrl.create({
+            el: element,
+            gestureName: 'swipe-with-feedback',
+            onStart: () => {
+                // Al iniciar el gesto, quitamos transiciones
+                element.style.transition = 'none';
+                currentX = 0;
+            },
+            onMove: detail => {
+                // Detalle de movimiento
+                currentX = detail.deltaX;
+
+                // Opcional: Limitar la distancia para no arrastrar infinito
+                // Por ejemplo, máximo ±100px
+                if (currentX > 100) currentX = 100;
+                if (currentX < -100) currentX = -100;
+
+                // Aplicar translate en tiempo real
+                element.style.transform = `translateX(${currentX}px)`;
+            },
+            onEnd: detail => {
+                // Al soltar el dedo
+                element.style.transition = 'transform 0.2s ease-out';
+
+                if (currentX > threshold) {
+                    // Deslizó a la derecha => día anterior
+                    this.goToPreviousDay();
+
+                    // Pequeña animación de “salida”
+                    element.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        // Reseteamos a 0 en un par de frames
+                        element.style.transform = 'translateX(0)';
+                    }, 50);
+                } else if (currentX < -threshold) {
+                    // Deslizó a la izquierda => día siguiente
+                    this.goToNextDay();
+
+                    element.style.transform = 'translateX(-100%)';
+                    setTimeout(() => {
+                        element.style.transform = 'translateX(0)';
+                    }, 50);
+                } else {
+                    // No superó el umbral => rebote a 0
+                    element.style.transform = 'translateX(0)';
+                }
+            },
+        });
+        gesture.enable();
+    }
+
+
+    handleSwipeEnd(event: any) {
+        if (event.deltaX > 50) {
+            // Deslizó a la derecha => día anterior
+            this.goToPreviousDay();
+        } else if (event.deltaX < -50) {
+            // Deslizó a la izquierda => día siguiente
+            this.goToNextDay();
+        }
+    }
+
+    goToPreviousDay() {
+        console.log('Swipe => previous day');
+        const current = new Date(this.year, this.month - 1, this.day);
+        const prev = new Date(current.getFullYear(), current.getMonth(), current.getDate() - 1);
+        this.navigateToDate(prev);
+    }
+
+    goToNextDay() {
+        console.log('Swipe => next day');
+        const current = new Date(this.year, this.month - 1, this.day);
+        const next = new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1);
+        this.navigateToDate(next);
+    }
+
+    navigateToDate(date: Date) {
+        this.year = date.getFullYear();
+        this.month = date.getMonth() + 1;
+        this.day = date.getDate();
+
+        this.formattedDate = date.toDateString();
+        // Cargamos la info del nuevo día
+        this.loadDayData();
+    }
+
+
+    async openModal() {
+        const modal = await this.modalCtrl.create({
+            component: DayCompleteModalComponent,
+            componentProps: {
+                averageScore: 4.5,
+                color: '#4CAF50'
+            }
+        });
+        await modal.present();
+    }
 
     openMealForm(meal: Meal) {
         this.currentMeal = meal
@@ -132,7 +257,7 @@ export class DailyviewPage implements OnInit {
             : {
                 id: '',
                 name: '',
-                score: 0, // Valor por defecto
+                score: 0,
                 done: false,
                 mealtype: 'Custom',
                 description: '',
@@ -141,8 +266,6 @@ export class DailyviewPage implements OnInit {
         console.log('Current meal on opening modal:', this.currentMeal);
         this.isModalOpen = true;
     }
-
-
 
     closeModal() {
         this.isModalOpen = false;
@@ -157,43 +280,25 @@ export class DailyviewPage implements OnInit {
 
     filterSuggestions() {
         const query = this.currentMeal.name?.trim().toLowerCase() || '';
-
         if (!query) {
-            // Si está vacío, no muestras sugerencias
             this.suggestions = [];
             return;
         }
-
-        // Filtras allMealData (objeto con name, score...)
         this.suggestions = this.allMealData
             .filter(meal => meal.name.toLowerCase().startsWith(query))
-            .sort((a, b) => a.name.localeCompare(b.name)); // Ordena por nombre
-
-
+            .sort((a, b) => a.name.localeCompare(b.name));
     }
-
 
     selectSuggestion(suggestion: { name: string; score: number }) {
         this.currentMeal.name = suggestion.name;
         this.currentMeal.score = suggestion.score;
-        this.suggestions = []; // Limpia la lista
-    }
-
-
-
-    setSuggestion() {
-        // Actualizamos el rango al seleccionar una sugerencia
-        const selectedMeal = this.meals.find(m => m.name === this.currentMeal.name);
-        if (selectedMeal) {
-            this.currentMeal.score = selectedMeal.score;
-        }
+        this.suggestions = [];
     }
 
     async askToAddMealToDatabase(): Promise<boolean> {
-        return new Promise(async (resolve) => {
-            // Cierra el modal antes de mostrar el alert
-            await this.modalCtrl.dismiss();
+        await this.modalCtrl.dismiss();
 
+        return new Promise(async (resolve) => {
             const alert = await this.alertController.create({
                 header: 'New Meal',
                 message: `The meal "${this.currentMeal.name}" is not in the database. Would you like to add it?`,
@@ -215,11 +320,9 @@ export class DailyviewPage implements OnInit {
                     }
                 ]
             });
-
             await alert.present();
         });
     }
-
 
     async saveMeal() {
         console.log('Saving meal:', this.currentMeal);
@@ -243,7 +346,9 @@ export class DailyviewPage implements OnInit {
             this.meals.push(newMeal);
         }
 
-        const mealExists = this.allMealData.some(meal => meal.name.toLowerCase() === this.currentMeal.name.toLowerCase());
+        const mealExists = this.allMealData.some(
+            meal => meal.name.toLowerCase() === this.currentMeal.name.toLowerCase()
+        );
         if (!mealExists) {
             const userWantsToAdd = await this.askToAddMealToDatabase();
             if (!userWantsToAdd) {
@@ -251,13 +356,9 @@ export class DailyviewPage implements OnInit {
             }
         }
 
-        // Ahora sí cerramos el modal después de interactuar con el Alert
         this.closeModal();
-
-        // Guardar en Firestore
         this.saveDayDataToFirebase();
     }
-
 
     async addMealToDatabase() {
         try {
@@ -296,10 +397,7 @@ export class DailyviewPage implements OnInit {
                     text: 'Delete',
                     role: 'destructive',
                     handler: () => {
-                        // Filtra la comida de la lista
                         this.meals = this.meals.filter(m => m.id !== meal.id);
-
-                        // Guarda los cambios en Firestore
                         this.saveDayDataToFirebase();
                         console.log(`Meal "${meal.name}" deleted.`);
                     }
@@ -308,29 +406,20 @@ export class DailyviewPage implements OnInit {
         }).then(alert => alert.present());
     }
 
-
     editMeal(meal: Meal) {
-        // Este método se activa con el deslizamiento y también llama a openMealForm para editar.
-        console.log("Editando comida existente:", meal);
+        console.log('Editando comida existente:', meal);
         this.openMealForm(meal);
     }
 
-
     toggleMealDone(meal: Meal): void {
         meal.done = !meal.done;
-
-        // Subir los datos actualizados a Firebase
         this.saveDayDataToFirebase();
-        console.log("Meal status updated and saved in Firebase:", meal);
+        console.log('Meal status updated and saved in Firebase:', meal);
     }
-
 
     isDayComplete(): boolean {
-        // Todas las comidas deben tener nombre y estar marcadas como "hechas"
         return this.meals.every(meal => meal.name && meal.done);
     }
-
-
 
     async finalizeDay() {
         if (this.isDayComplete()) {
@@ -341,24 +430,18 @@ export class DailyviewPage implements OnInit {
             const docRef = doc(this.firestore, 'dailyScores', dateKey);
 
             try {
-                // Actualiza Firestore con isComplete: true
                 await setDoc(docRef, {
                     score: averageScore,
                     color: color,
                     year: this.year,
                     month: this.month,
                     day: this.day,
-                    isComplete: true, // Aquí marcamos que el día está completo
+                    isComplete: true,
                     meals: this.meals
-                }, { merge: true }); // Merge para no sobrescribir todo el documento
+                }, { merge: true });
 
-                console.log('Day finalized and saved to Firestore:', {
-                    averageScore,
-                    color,
-                    isComplete: true
-                });
+                console.log('Day finalized and saved to Firestore:', { averageScore, color, isComplete: true });
 
-                // Abre el modal de "Day Complete"
                 const modal = await this.modalCtrl.create({
                     component: DayCompleteModalComponent,
                     componentProps: {
@@ -366,25 +449,19 @@ export class DailyviewPage implements OnInit {
                         color: color
                     }
                 });
-
                 await modal.present();
             } catch (error) {
                 console.error('Error finalizing day:', error);
             }
         } else {
-            console.log('Day is not complete. Ensure all meals are marked as done.');
+            console.log('Day is not complete. Ensure all meals are done.');
         }
     }
 
-
-
-
     calculateAverageScore(): number {
-        // Asegurarse de hacer la suma primero y luego dividir
         const totalScore = this.meals.reduce((sum, meal) => sum + meal.score, 0);
         return totalScore / this.meals.length;
     }
-
 
     getColorClass(meal: Meal): string {
         const baseClass = meal.done ? 'checked' : 'unchecked';
@@ -392,9 +469,7 @@ export class DailyviewPage implements OnInit {
         return `${baseClass} ${scoreClass}`;
     }
 
-
     getColorByScore(score: number): string {
-        // Devolver el color basado en la puntuación
         if (score === 0) return '#999999';
         if (score >= 4.5) return '#4dff4d';
         if (score >= 3.5) return '#b3ff4d';
@@ -407,20 +482,16 @@ export class DailyviewPage implements OnInit {
         const docRef = doc(this.firestore, 'dailyScores', `${this.year}-${this.month}-${this.day}`);
 
         getDoc(docRef).then((docSnap) => {
-            // 1. "Sanitizar" los meals (si algo es undefined => null)
-            const sanitizedMeals = this.meals.map((meal) => ({
+            const sanitizedMeals = this.meals.map(meal => ({
                 ...meal,
                 recipe: meal.recipe ?? null,
                 image: meal.image ?? null,
                 url: meal.url ?? null,
                 description: meal.description ?? null,
-                // Añade aquí cualquier propiedad que pueda ser undefined
             }));
 
             if (docSnap.exists()) {
                 const existingData = docSnap.data() as FirestoreDayData;
-
-                // 2. Fusionar lo anterior con las comidas sanitizadas, sin tocar score/color/isComplete
                 const updatedData: FirestoreDayData = {
                     ...existingData,
                     meals: sanitizedMeals,
@@ -434,7 +505,6 @@ export class DailyviewPage implements OnInit {
                     .catch((error) => console.error('Error al actualizar:', error));
 
             } else {
-                // Doc no existía => creamos con valores iniciales
                 const initialData: FirestoreDayData = {
                     year: this.year,
                     month: this.month,
@@ -473,8 +543,6 @@ export class DailyviewPage implements OnInit {
                         meal.score = 0;
                         meal.description = '';
                         meal.reminder = false;
-
-                        // Guarda los cambios en Firestore
                         this.saveDayDataToFirebase();
                         console.log(`Content of "${meal.mealtype}" cleared.`);
                     }
@@ -482,12 +550,4 @@ export class DailyviewPage implements OnInit {
             ]
         }).then(alert => alert.present());
     }
-
-
-
-
 }
-
-
-
-

@@ -211,3 +211,10 @@ ion-item {
     font-size: 16px;
     color: #333333;
 }
+
+.gesture-container {
+    width: 100%;
+    height: 100%;
+    touch-action: pan-x;
+    /* Permite el gesto horizontal */
+}

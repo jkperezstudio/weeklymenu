@@ -9,57 +9,59 @@
 </ion-header>
 
 <ion-content>
-    <ion-card class="todaysmealcontent">
-        <ion-card-header>
-            <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
+    <!-- Contenedor que recibe los gestos de swipe -->
+    <div #gestureContainer class="gesture-container">
 
-            <h3 class="todaysdate">{{ formattedDate }}</h3>
+        <ion-card class="todaysmealcontent">
+            <ion-card-header>
+                <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
+                <h3 class="todaysdate">{{ formattedDate }}</h3>
+            </ion-card-header>
 
-        </ion-card-header>
+            <ion-card-content>
+                <div *ngFor="let meal of meals">
+                    <ion-item-sliding *ngIf="meal && meal.name; else emptyMeal">
+                        <ion-item lines="none">
+                            <ion-checkbox slot="end" [checked]="meal.done" (ionChange)="toggleMealDone(meal)"
+                                [ngClass]="getColorClass(meal)">
+                            </ion-checkbox>
 
-        <ion-card-content>
-            <div *ngFor="let meal of meals">
-                <ion-item-sliding *ngIf="meal && meal.name; else emptyMeal">
-                    <ion-item lines="none">
+                            <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}">
+                                <h1 class="mealtype">{{ meal.mealtype}}</h1>
+                                <h2 class="meal">{{ meal.name }}</h2>
+                                <p *ngIf="meal.description">{{ meal.description }}</p>
+                            </ion-label>
+                        </ion-item>
+                        <ion-item-options side="end">
+                            <ion-item-option color="danger" (click)="clearMealContent(meal)">
+                                Clear
+                            </ion-item-option>
+                        </ion-item-options>
+                    </ion-item-sliding>
 
-                        <ion-checkbox slot="end" [checked]="meal.done" (ionChange)="toggleMealDone(meal)"
-                            [ngClass]="getColorClass(meal)">
-                        </ion-checkbox>
+                    <ng-template #emptyMeal>
+                        <ion-item (click)="openMealForm(meal)">
+                            <ion-label>
+                                <h1 class="mealtype">{{ meal.mealtype}}</h1>
+                                <h2 class="notmealyet">Add Meal</h2>
+                            </ion-label>
+                        </ion-item>
+                    </ng-template>
+                </div>
 
-                        <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}">
-                            <h1 class="mealtype">{{ meal.mealtype}}</h1>
-                            <h2 class="meal">{{ meal.name }}</h2>
-                            <p *ngIf="meal.description">{{ meal.description }}</p>
-                        </ion-label>
-                    </ion-item>
-                    <ion-item-options side="end">
-                        <ion-item-option color="danger" (click)="clearMealContent(meal)">
-                            Clear
-                        </ion-item-option>
-                    </ion-item-options>
-                </ion-item-sliding>
+                <ion-button expand="full" [disabled]="!isDayComplete()" (click)="finalizeDay()">
+                    Finalize Day
+                </ion-button>
 
-                <ng-template #emptyMeal>
-                    <ion-item (click)="openMealForm(meal)">
-                        <ion-label>
-                            <h1 class="mealtype">{{ meal.mealtype}}</h1>
-                            <h2 class="notmealyet">Add Meal</h2>
-                        </ion-label>
-                    </ion-item>
-                </ng-template>
-            </div>
+                <ion-button (click)="goToPreviousDay()">Previous</ion-button>
+                <ion-button (click)="goToNextDay()">Next</ion-button>
 
-            <ion-button expand="full" [disabled]="!isDayComplete()" (click)="finalizeDay()">
-                Finalize Day
-            </ion-button>
+            </ion-card-content>
+        </ion-card>
 
-
-
-        </ion-card-content>
-    </ion-card>
+    </div>
 
     <!--Sección del modal a partir de aquí-->
-
     <ion-modal #mealModal [isOpen]="isModalOpen" (didDismiss)="onModalDismiss($event)">
         <ng-template>
             <ion-header>
@@ -68,9 +70,7 @@
                 </ion-toolbar>
             </ion-header>
 
-            <!-- Usamos ion-content para el cuerpo del modal -->
             <ion-content class="modal-container">
-
                 <ion-item fill="outline" lines="none">
                     <ion-input class="name" name="mealName" label="Name" placeholder="Enter meal name"
                         labelPlacement="floating" required fill="outline" [(ngModel)]="currentMeal.name"
@@ -84,8 +84,6 @@
                         {{ suggestion.name }}
                     </ion-item>
                 </ion-list>
-
-
 
                 <ion-item class="score" lines="none">
                     <ion-label>Score</ion-label>
@@ -107,12 +105,10 @@
                     </ion-toggle>
                 </ion-item>
 
-                <!-- Botón Save suelto dentro de ion-content -->
                 <ion-button class="savebutton" (click)="saveMeal()"
                     [disabled]="!currentMeal.name || !currentMeal.score">
                     SAVE
                 </ion-button>
-
             </ion-content>
         </ng-template>
     </ion-modal>
