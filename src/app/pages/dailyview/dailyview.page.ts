@@ -191,6 +191,9 @@ export class DailyviewPage implements OnInit {
 
     async askToAddMealToDatabase(): Promise<boolean> {
         return new Promise(async (resolve) => {
+            // Cierra el modal antes de mostrar el alert
+            await this.modalCtrl.dismiss();
+
             const alert = await this.alertController.create({
                 header: 'New Meal',
                 message: `The meal "${this.currentMeal.name}" is not in the database. Would you like to add it?`,
@@ -216,6 +219,7 @@ export class DailyviewPage implements OnInit {
             await alert.present();
         });
     }
+
 
     async saveMeal() {
         console.log('Saving meal:', this.currentMeal);
@@ -333,19 +337,45 @@ export class DailyviewPage implements OnInit {
             const averageScore = this.calculateAverageScore();
             const color = this.getColorByScore(averageScore);
 
-            // ... guardas en Firestore, etc.
+            const dateKey = `${this.year}-${this.month}-${this.day}`;
+            const docRef = doc(this.firestore, 'dailyScores', dateKey);
 
-            const modal = await this.modalCtrl.create({
-                component: DayCompleteModalComponent,
-                componentProps: {
-                    averageScore: averageScore.toFixed(1),
-                    color: color
-                }
-            });
+            try {
+                // Actualiza Firestore con isComplete: true
+                await setDoc(docRef, {
+                    score: averageScore,
+                    color: color,
+                    year: this.year,
+                    month: this.month,
+                    day: this.day,
+                    isComplete: true, // Aquí marcamos que el día está completo
+                    meals: this.meals
+                }, { merge: true }); // Merge para no sobrescribir todo el documento
 
-            await modal.present();
+                console.log('Day finalized and saved to Firestore:', {
+                    averageScore,
+                    color,
+                    isComplete: true
+                });
+
+                // Abre el modal de "Day Complete"
+                const modal = await this.modalCtrl.create({
+                    component: DayCompleteModalComponent,
+                    componentProps: {
+                        averageScore: averageScore.toFixed(1),
+                        color: color
+                    }
+                });
+
+                await modal.present();
+            } catch (error) {
+                console.error('Error finalizing day:', error);
+            }
+        } else {
+            console.log('Day is not complete. Ensure all meals are marked as done.');
         }
     }
+
 
 
 

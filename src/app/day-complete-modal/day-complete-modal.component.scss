@@ -1,9 +1,20 @@
 .modal-content {
-    --background: #ffffff;
-    --border-radius: 20px;
-    padding: 1.5rem;
+    --background: #1f1f1f;
+    --border-radius: 16px;
+    width: 80%;
+    height: 35%;
+    padding: 1rem;
+    margin-top: 50%;
     text-align: center;
+    align-self: center;
+    border-radius: 15px;
 }
+
+ion-modal::part(backdrop) {
+    background: rgba(0, 0, 0, 0.5);
+    /* Ajusta la opacidad a tu gusto */
+}
+
 
 .content-wrapper {
     display: flex;
@@ -12,15 +23,19 @@
     gap: 1rem;
 
     img {
-        max-width: 150px;
+        max-width: 120px;
+        filter: hue-rotate(calc(var(--color-of-day-hue, 0deg)));
+        transition: filter 0.3s ease-in-out;
     }
 
-    h1 {
-        font-size: 2rem;
+    .day-complete-title {
+        font-size: 1.8rem;
         font-weight: bold;
+        color: #ffffff;
     }
 
     p {
         font-size: 1.2rem;
+        color: #cfcfcf;
     }
 }

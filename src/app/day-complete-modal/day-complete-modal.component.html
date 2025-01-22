@@ -1,10 +1,7 @@
-<ion-content class="modal-content">
-  <div class="content-wrapper">
-    <img src="assets/animations/check.gif" alt="Check Animation" />
-    <!-- Usa la propiedad color para ponerle estilo -->
-    <h1 [style.color]="color">Day Complete!</h1>
-    <p>Your daily average score is: {{ averageScore }}</p>
+<ion-card class="modal-content">
+  <div class="content-wrapper" [ngStyle]="{'--color-of-day': color}">
+    <h1 class="day-complete-title">Day Complete!</h1>
+    <img src="assets/animations/check.gif" alt="Check Animation" class="colored-gif" />
+    <!-- <p>Your daily average score is: {{ averageScore }}</p> -->
   </div>
-
-  <ion-button expand="block" (click)="dismiss()">Close</ion-button>
-</ion-content>
+</ion-card>
