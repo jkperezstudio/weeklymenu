@@ -550,4 +550,6 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             ]
         }).then(alert => alert.present());
     }
+
+
 }
