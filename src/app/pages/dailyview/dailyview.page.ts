@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
@@ -6,7 +6,7 @@ import { AlertController, ModalController, GestureController, Gesture } from '@i
 import { ActivatedRoute } from '@angular/router';
 import { Firestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import { DayCompleteModalComponent } from '../../day-complete-modal/day-complete-modal.component';
-import { IonHeader, IonItem, IonLabel, IonButton, IonItemOption, IonItemOptions, IonItemSliding, IonCardContent, IonCardTitle, IonCardHeader, IonCard, IonContent, IonTitle, IonToolbar, IonButtons, IonModal, IonList, IonMenuButton } from "@ionic/angular/standalone";
+import { IonHeader, IonItem, IonLabel, IonButton, IonItemOption, IonItemOptions, IonItemSliding, IonCardContent, IonCardTitle, IonCardHeader, IonCard, IonContent, IonTitle, IonToolbar, IonButtons, IonModal, IonList, IonMenuButton, IonInput, IonRange, IonToggle } from "@ionic/angular/standalone";
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 
@@ -15,13 +15,14 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
     templateUrl: './dailyview.page.html',
     styleUrls: ['./dailyview.page.scss'],
     standalone: true,
-    imports: [IonList, IonModal, IonButtons, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItemSliding, IonItemOptions, IonItemOption, IonButton, IonLabel, IonItem, IonHeader, CommonModule, FormsModule, ReactiveFormsModule, IonMenuButton],
+    imports: [IonList, IonModal, IonButtons, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItemSliding, IonItemOptions, IonItemOption, IonButton, IonLabel, IonItem, IonHeader, CommonModule, FormsModule, ReactiveFormsModule, IonMenuButton, IonInput, IonRange, IonToggle],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 
 })
 export class DailyviewPage implements OnInit, AfterViewInit {
 
     @ViewChild('gestureContainer', { static: true }) gestureContainer!: ElementRef;
+    @ViewChild('mealCard', { read: ElementRef }) mealCard!: ElementRef;
 
     day: number = 0;
     month: number = 0;
@@ -32,7 +33,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     suggestions: { name: string; score: number }[] = [];
 
     isModalOpen = false;
-    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', description: '', reminder: false };
+    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', description: '', reminder: false, delivery: false };
     mealDoneControls: { [key: string]: FormControl } = {};
 
     meals: Meal[] = [
@@ -48,7 +49,8 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         private route: ActivatedRoute,
         private firestore: Firestore,
         private modalCtrl: ModalController,
-        private gestureCtrl: GestureController
+        private gestureCtrl: GestureController,
+        private cdr: ChangeDetectorRef
     ) { }
 
     /**
@@ -123,21 +125,26 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
             if (docSnap.exists()) {
                 const data = docSnap.data() as FirestoreDayData;
-                console.log('Datos cargados desde Firestore:', data);
-
-                // Reemplazamos "this.meals" con lo que haya en Firestore
-                this.meals = data.meals || [];
+                this.meals = data.meals || this.getDefaultMeals();
             } else {
-                // Si no hay documento, reiniciamos a las comidas base
-                this.meals = [
-                    { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
-                    { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false, reminder: false },
-                    { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false, reminder: false }
-                ];
+                this.meals = this.getDefaultMeals();
             }
+
+            this.cdr.detectChanges(); // <-- Actualiza la UI aquí también
         } catch (error) {
-            console.error('Error al cargar datos del día:', error);
+            console.error('Error al cargar datos:', error);
+            this.meals = this.getDefaultMeals();
+            this.cdr.detectChanges();
         }
+    }
+
+    // Añade esta función para obtener las comidas por defecto
+    private getDefaultMeals(): Meal[] {
+        return [
+            { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
+            { id: '2', mealtype: 'Lunch', name: '', score: 0, done: false, reminder: false },
+            { id: '3', mealtype: 'Dinner', name: '', score: 0, done: false, reminder: false }
+        ];
     }
 
     /**
@@ -147,6 +154,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
      * ----------------------------------------------------------------
      */
     ngAfterViewInit() {
+        this.setupSwipeGesture();
         const element = this.gestureContainer.nativeElement;
 
         let currentX = 0;   // Desplazamiento en cada onMove
@@ -173,30 +181,28 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 // Aplicar translate en tiempo real
                 element.style.transform = `translateX(${currentX}px)`;
             },
-            onEnd: detail => {
-                // Al soltar el dedo
+            // En el onEnd del gesto (dentro de ngAfterViewInit):
+            // En el onEnd del gesto:
+            onEnd: (detail) => {
                 element.style.transition = 'transform 0.2s ease-out';
+                let targetDate: Date | null = null;
 
                 if (currentX > threshold) {
-                    // Deslizó a la derecha => día anterior
-                    this.goToPreviousDay();
-
-                    // Pequeña animación de “salida”
-                    element.style.transform = 'translateX(100%)';
-                    setTimeout(() => {
-                        // Reseteamos a 0 en un par de frames
-                        element.style.transform = 'translateX(0)';
-                    }, 50);
+                    targetDate = this.goToPreviousDay();
                 } else if (currentX < -threshold) {
-                    // Deslizó a la izquierda => día siguiente
-                    this.goToNextDay();
+                    targetDate = this.goToNextDay();
+                }
 
-                    element.style.transform = 'translateX(-100%)';
-                    setTimeout(() => {
-                        element.style.transform = 'translateX(0)';
-                    }, 50);
+                if (targetDate) {
+                    element.style.transform = currentX > threshold ? 'translateX(100%)' : 'translateX(-100%)';
+
+                    // Espera a que navigateToDate() termine antes de resetear la posición
+                    this.navigateToDate(targetDate).then(() => {
+                        setTimeout(() => {
+                            element.style.transform = 'translateX(0)';
+                        }, 50);
+                    });
                 } else {
-                    // No superó el umbral => rebote a 0
                     element.style.transform = 'translateX(0)';
                 }
             },
@@ -215,28 +221,36 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         }
     }
 
-    goToPreviousDay() {
-        console.log('Swipe => previous day');
+
+    goToPreviousDay(): Date { // Devuelve Date, no void
         const current = new Date(this.year, this.month - 1, this.day);
-        const prev = new Date(current.getFullYear(), current.getMonth(), current.getDate() - 1);
-        this.navigateToDate(prev);
+        return new Date(current.getFullYear(), current.getMonth(), current.getDate() - 1);
     }
 
-    goToNextDay() {
-        console.log('Swipe => next day');
+    goToNextDay(): Date { // Devuelve Date, no void
         const current = new Date(this.year, this.month - 1, this.day);
-        const next = new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1);
-        this.navigateToDate(next);
+        return new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1);
     }
 
-    navigateToDate(date: Date) {
+    async navigateToDate(date: Date): Promise<void> {
         this.year = date.getFullYear();
         this.month = date.getMonth() + 1;
         this.day = date.getDate();
-
         this.formattedDate = date.toDateString();
-        // Cargamos la info del nuevo día
-        this.loadDayData();
+
+        // Vacía temporalmente las comidas para mostrar carga
+        this.meals = [];
+        this.cdr.detectChanges(); // <-- Fuerza actualización inmediata
+
+        try {
+            await this.loadDayData();
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+            this.meals = this.getDefaultMeals();
+        }
+
+        // Fuerza otra actualización tras cargar los datos
+        this.cdr.detectChanges(); // <-- Asegura que Angular refleje los cambios
     }
 
 
@@ -263,8 +277,12 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 description: '',
                 reminder: false,
             };
-        console.log('Current meal on opening modal:', this.currentMeal);
         this.isModalOpen = true;
+
+        // Fuerza la detección de cambios para actualizar la UI
+        this.cdr.detectChanges(); // <-- Añade esta línea
+
+        console.log('Modal debería abrirse ahora');
     }
 
     closeModal() {
@@ -551,5 +569,31 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         }).then(alert => alert.present());
     }
 
+    setupSwipeGesture() {
+        const gestureElement = this.gestureContainer.nativeElement;
+        const mealCardElement = this.mealCard.nativeElement;
 
+        const gesture = this.gestureCtrl.create({
+            el: gestureElement,
+            gestureName: 'swipe',
+            onStart: (ev) => {
+                // Ignora el gesto si se toca un elemento interactivo
+                const target = ev.event.target as HTMLElement;
+                if (target.closest('ion-button, ion-item-sliding')) {
+                    return false;
+                }
+                mealCardElement.style.transition = 'none';
+                return true;
+            },
+            onMove: (detail) => {
+                mealCardElement.style.transform = `translateX(${detail.deltaX}px)`;
+            },
+            onEnd: (detail) => {
+                mealCardElement.style.transition = 'transform 0.3s ease-out';
+                // ... (lógica para cambiar de día)
+            }
+        });
+        gesture.enable();
+    }
 }
+

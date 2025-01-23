@@ -1,9 +1,3 @@
-.todaysmealcontent {
-    height: 80%;
-    border-radius: 15px;
-    margin-top: 10%;
-}
-
 ion-checkbox {
     --size: 35px;
     --border-width: 4px; // Grosor del borde que quieres mantener visible y marcado
@@ -212,9 +206,38 @@ ion-item {
     color: #333333;
 }
 
-.gesture-container {
-    width: 100%;
+.main-content {
+    padding: 0 10px; // Evita que el gesto llegue a los bordes
     height: 100%;
-    touch-action: pan-x;
-    /* Permite el gesto horizontal */
+}
+
+.todaysmealcontent {
+    height: 90%;
+    border-radius: 15px;
+    margin-top: 10%;
+}
+
+/* Asegura que el overlay no bloquee elementos */
+.gesture-container {
+    padding: 0 20px; // Limita el área activa del swipe (laterales)
+    touch-action: pan-y; // Permite scroll vertical
+    //border: 2px dashed red;
+    height: 80%;
+}
+
+.buttons-container {
+    width: 90%;
+    margin: 20px auto; // Centrado horizontal
+    text-align: center; // Alinea el botón "Finalize Day"
+
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+
+        ion-button {
+            width: 120px;
+            flex: 1; // Mismo ancho
+        }
+    }
 }

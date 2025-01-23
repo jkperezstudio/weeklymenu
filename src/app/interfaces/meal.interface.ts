@@ -9,6 +9,7 @@ export interface Meal {
     mealtype: string;
     description?: string | null;
     reminder?: boolean;
+    delivery?: boolean;
     recipe?: string | null;
     url?: string | null;
     image?: string | null;

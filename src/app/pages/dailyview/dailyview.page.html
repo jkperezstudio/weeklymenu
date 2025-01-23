@@ -8,11 +8,13 @@
     </ion-toolbar>
 </ion-header>
 
-<ion-content>
-    <!-- Contenedor que recibe los gestos de swipe -->
-    <div #gestureContainer class="gesture-container">
+<!----------------------------------->
+<!--Tarjeta con las comidas del día-->
+<!----------------------------------->
 
-        <ion-card class="todaysmealcontent">
+<ion-content>
+    <div #gestureContainer class="gesture-container">
+        <ion-card #mealCard class="todaysmealcontent">
             <ion-card-header>
                 <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
                 <h3 class="todaysdate">{{ formattedDate }}</h3>
@@ -48,20 +50,26 @@
                         </ion-item>
                     </ng-template>
                 </div>
-
-                <ion-button expand="full" [disabled]="!isDayComplete()" (click)="finalizeDay()">
-                    Finalize Day
-                </ion-button>
-
-                <ion-button (click)="goToPreviousDay()">Previous</ion-button>
-                <ion-button (click)="goToNextDay()">Next</ion-button>
-
             </ion-card-content>
         </ion-card>
-
     </div>
 
+    <!---------------------------------------->
+    <!--Botones de cambio de día y finalizar-->
+    <!---------------------------------------->
+
+    <div class="buttons-container">
+        <ion-button expand="block" (click)="finalizeDay()">Finalize Day</ion-button>
+        <div class="navigation-buttons">
+            <ion-button (click)="navigateToDate(goToPreviousDay())">Previous</ion-button>
+            <ion-button (click)="navigateToDate(goToNextDay())">Next</ion-button>
+        </div>
+    </div>
+
+    <!-------------------------------------->
     <!--Sección del modal a partir de aquí-->
+    <!-------------------------------------->
+
     <ion-modal #mealModal [isOpen]="isModalOpen" (didDismiss)="onModalDismiss($event)">
         <ng-template>
             <ion-header>
@@ -74,8 +82,7 @@
 
                 <ion-item fill="outline" lines="none">
                     <ion-input class="name" label="Name" placeholder="Enter meal name" labelPlacement="floating"
-                        fill="outline" required [(ngModel)]="currentMeal.name" [ngModelOptions]="{standalone:true}"
-                        (ionInput)="filterSuggestions()">
+                        fill="outline" required [(ngModel)]="currentMeal.name" (ionInput)="filterSuggestions()">
                     </ion-input>
                 </ion-item>
 
@@ -89,20 +96,19 @@
                 <ion-item class="score" lines="none">
                     <ion-label>Score</ion-label>
                     <ion-range min="1" max="5" step="1" snaps="true" ticks="true" [(ngModel)]="currentMeal.score"
-                        [ngModelOptions]="{standalone:true}"
                         [ngStyle]="{'--knob-background': getColorByScore(currentMeal.score)}">
                     </ion-range>
                 </ion-item>
 
                 <ion-item class="alarm" lines="none">
                     <ion-label>Defrosted Alarm?</ion-label>
-                    <ion-toggle slot="end" [(ngModel)]="currentMeal.reminder" [ngModelOptions]="{standalone:true}">
+                    <ion-toggle slot="end" [(ngModel)]="currentMeal.reminder">
                     </ion-toggle>
                 </ion-item>
 
                 <ion-item class="delivery" lines="none">
                     <ion-label>Delivery?</ion-label>
-                    <ion-toggle slot="end" [(ngModel)]="currentMeal.reminder" [ngModelOptions]="{standalone:true}">
+                    <ion-toggle slot="end" [(ngModel)]="currentMeal.delivery">
                     </ion-toggle>
                 </ion-item>
 
@@ -113,3 +119,5 @@
             </ion-content>
         </ng-template>
     </ion-modal>
+
+</ion-content>
