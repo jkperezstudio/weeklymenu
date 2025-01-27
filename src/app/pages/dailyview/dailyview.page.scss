@@ -243,14 +243,13 @@ ion-item-sliding {
 }
 
 .swipe-footer {
-    touch-action: none; // ¡IMPORTANTE para el gesto!
-    height: 100px;
-    padding: 16px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
+    position: relative; // Asegura que el botón absoluto use este contenedor como referencia
+    display: flex; // Para alinear el contenido
+    justify-content: center; // Centra el botón horizontalmente
+    align-items: center; // Centra el botón verticalmente
+    height: 100px; // Asegura suficiente espacio para el footer
     background: rgba(var(--ion-color-primary-rgb), 0.1);
+
 
     color: var(--ion-color-medium);
     font-size: 0.9em;
@@ -327,5 +326,27 @@ ion-fab {
             font-size: 2rem;
             color: white;
         }
+    }
+}
+
+.button-trapezoid {
+    width: 120px;
+    height: 25px;
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+    border-radius: 10px;
+    transform: rotate(90deg); // Rotar el botón 90 grados
+    margin-left: auto; // Ajusta si quieres que se pegue a la izquierda
+    transition: all 0.3s ease-in-out;
+
+    &:hover {
+        background-color: #1abc9c;
     }
 }
