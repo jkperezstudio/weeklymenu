@@ -206,38 +206,126 @@ ion-item {
     color: #333333;
 }
 
-.main-content {
-    padding: 0 10px; // Evita que el gesto llegue a los bordes
-    height: 100%;
-}
-
 .todaysmealcontent {
-    height: 90%;
-    border-radius: 15px;
+    height: auto; // Cambiamos de 90% a auto
+    min-height: 70vh; // Altura mínima para pantallas pequeñas
+    max-height: 80vh; // Altura máxima para pantallas grandes
+    border-radius: 25px;
     margin-top: 10%;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Asegura que el overlay no bloquee elementos */
-.gesture-container {
-    padding: 0 20px; // Limita el área activa del swipe (laterales)
-    touch-action: pan-y; // Permite scroll vertical
-    //border: 2px dashed red;
-    height: 80%;
+
+/* Estructura principal */
+.main-content {
+    display: flex;
+    padding: 0 10px;
+    flex-direction: column;
+    height: 90vh;
+    /* Ocupa toda la pantalla */
 }
 
+
+
+ion-item-sliding {
+    z-index: 1;
+    /* Asegura que está detrás del header */
+}
+
+/* Lista de comidas con scroll */
+.meals-content {
+    height: 55vh; // Reducimos la altura (ajusta este valor)
+    overflow-y: auto;
+    touch-action: auto;
+    padding: 16px;
+    flex: 1; // Mantenemos esto para el layout flexible
+}
+
+.swipe-footer {
+    touch-action: none; // ¡IMPORTANTE para el gesto!
+    height: 100px;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    background: rgba(var(--ion-color-primary-rgb), 0.1);
+
+    color: var(--ion-color-medium);
+    font-size: 0.9em;
+    cursor: grab;
+    transition: opacity 0.2s;
+
+    &.swiping {
+        opacity: 0.7;
+    }
+
+    ion-icon {
+        font-size: 1.2em;
+    }
+
+    .footer-fab {
+        position: absolute;
+        bottom: 15px; // Ajusta según necesidad
+        right: 15px;
+        z-index: 3;
+
+        ion-fab-button {
+            --size: 50px;
+            --background: var(--ion-color-primary);
+            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+            ion-icon {
+                font-size: 1.8rem;
+            }
+        }
+    }
+}
+
+/* Botones fijos */
 .buttons-container {
-    width: 90%;
-    margin: 20px auto; // Centrado horizontal
-    text-align: center; // Alinea el botón "Finalize Day"
+    position: relative;
+    z-index: 2;
+    padding: 10px;
+    background: var(--ion-background-color);
 
     .navigation-buttons {
         display: flex;
         justify-content: space-between;
         gap: 10px;
+        margin-top: 10px;
+
 
         ion-button {
-            width: 120px;
-            flex: 1; // Mismo ancho
+            flex: 1;
+            max-width: 48%;
+
+        }
+    }
+}
+
+ion-button {
+    --border-radius: 15px;
+}
+
+/* Estilos del FAB */
+ion-fab {
+    bottom: 20px; // Posición desde abajo
+    right: 20px;
+    z-index: 1000; // Mayor z-index
+
+    ion-fab-button {
+        --background: var(--ion-color-primary);
+        --background-activated: var(--ion-color-primary-shade);
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        --border-radius: 50%;
+        width: 50px;
+        height: 50px;
+
+        ion-icon {
+            font-size: 2rem;
+            color: white;
         }
     }
 }
