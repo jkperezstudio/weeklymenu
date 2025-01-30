@@ -8,9 +8,8 @@
   </ion-toolbar>
 </ion-header>
 
-
-
 <ion-content *ngIf="isCalendarReady">
-  <ion-datetime presentation="date" firstDayOfWeek="1" [highlightedDates]="highlightedDates"
-    (ionChange)="selectDay($event)"></ion-datetime>
+  <ion-datetime #calendar presentation="date" firstDayOfWeek="1" (ionChange)="selectDay($event)"
+    [highlightedDates]="highlightedDates" [value]="currentDay">
+  </ion-datetime>
 </ion-content>

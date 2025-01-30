@@ -25,38 +25,203 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* src/theme/variables.css */
+:root {
+    /* ========== CORE COLORS ========== */
+    --ion-background-color: #121212;
+    --ion-background-color-rgb: 18, 18, 18;
+    --ion-text-color: #ffffff;
+    --ion-text-color-rgb: 255, 255, 255;
+    --ion-border-color: rgba(255, 255, 255, 0.12);
+    --ion-color-step-50: #0a0a0a;
+    --ion-color-step-100: #1a1a1a;
+    --ion-color-step-150: #262626;
+    --ion-color-step-200: #333333;
+    --ion-color-step-250: #404040;
+    --ion-color-step-300: #4d4d4d;
+    --ion-color-primary-contrast: #1a1a1a;
+    /* ========== COMPONENTES IONIC ========== */
+    /* -- Items y Listas -- */
+    --ion-item-background: #1e1e1e;
+    --ion-item-background-activated: #383838;
+    --ion-item-background-hover: #2a2a2a;
+    --ion-item-border-color: var(--ion-border-color);
 
-@import "@ionic/angular/css/palettes/dark.always.css";
-@import "@ionic/angular/css/palettes/dark.class.css";
-@import '@ionic/angular/css/palettes/dark.system.css';
+    /* -- Toolbar y Header -- */
+    --ion-toolbar-background: #1a1a1a;
+    --ion-toolbar-text-color: var(--ion-text-color);
+    --ion-toolbar-border-color: var(--ion-border-color);
 
+    /* -- Tabs -- */
+    --ion-tab-bar-background: #1a1a1a;
+    --ion-tab-bar-color: rgba(255, 255, 255, 0.6);
+    --ion-tab-bar-color-selected: var(--ion-color-primary);
 
-.icon-upper-bar {
-    margin-left: 5%;
+    /* -- Cards -- */
+    --ion-card-background: #2d2d2d;
+    --ion-card-color: var(--ion-text-color);
+
+    /* -- Inputs y Formularios -- */
+    --ion-input-background: #2d2d2d;
+    --ion-input-border-color: var(--ion-border-color);
+    --ion-input-color: var(--ion-text-color);
+    --ion-input-placeholder-color: rgba(255, 255, 255, 0.6);
+
+    /* -- Checkboxes -- */
+    --ion-checkbox-background: #3a3a3a;
+    --ion-checkbox-background-checked: var(--ion-color-primary);
+    --ion-checkbox-border-color: var(--ion-border-color);
+
+    /* -- Toggles -- */
+    --ion-toggle-background: #3a3a3a;
+    --ion-toggle-background-checked: var(--ion-color-primary);
+    --ion-toggle-handle-background: #ffffff;
+
+    /* -- Alerts y Popovers -- */
+    --ion-alert-background: #2d2d2d;
+    --ion-alert-button-color: var(--ion-text-color);
+    --ion-alert-input-background: #3a3a3a;
+
+    /* DateTime */
+    ion-datetime::part(time-button) {
+        color: var(--ion-text-color) !important;
+        background: #3a3a3a !important;
+    }
+
+    /* Calendar inside datetime */
+    ion-datetime::part(calendar-day) {
+        color: var(--ion-text-color) !important;
+    }
+
+    ion-datetime::part(calendar-day):hover {
+        background: #3a3a3a !important;
+    }
+
+    /* Highlighted days */
+    ion-datetime::part(day-highlighted),
+    ion-datetime::part(day-selected),
+    ion-datetime::part(day-today) {
+        background-color: #ffffff !important;
+        /* O el color que desees */
+        color: inherit !important;
+        border: none !important;
+    }
+
+    /* -- Progress Bars -- */
+    --ion-progress-background: #3a3a3a;
+    --ion-progress-background-active: var(--ion-color-primary);
+
+    /* -- Segmentos -- */
+    --ion-segment-background: #2d2d2d;
+    --ion-segment-color: rgba(255, 255, 255, 0.6);
+    --ion-segment-color-checked: var(--ion-text-color);
+
+    /* -- Refresher -- */
+    --ion-refresher-background: var(--ion-background-color);
+    --ion-refresher-color: var(--ion-text-color);
+
+    /* ========== COMPONENTES MATERIAL ========== */
+    .mat-bottom-sheet-container {
+        background-color: #2d2d2d !important;
+        color: var(--ion-text-color) !important;
+    }
+
+    /* ========== ELEMENTOS NATIVOS ========== */
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+        width: 8px;
+        background: #2d2d2d;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #4d4d4d;
+        border-radius: 4px;
+    }
 }
 
-ion-title {
-    color: #e2e2e2;
+/* ========== OVERRIDES ESPECÍFICOS ========== */
+/* Checkboxes (iOS) */
+ion-checkbox::part(container) {
+    border-radius: 4px;
+    border: 2px solid var(--ion-border-color);
 }
 
-ion-menu-button {
-    color: #4780e7;
+/* DateTime */
+ion-datetime::part(time-button) {
+    color: var(--ion-text-color);
+    background: #3a3a3a;
 }
 
-.mat-bottom-sheet-container {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0;
-    right: 0;
-    margin: 0 auto;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
-    background-color: #161616 !important;
+/* Calendar inside datetime */
+ion-datetime::part(calendar-day) {
+    color: var(--ion-text-color);
+}
+
+ion-datetime::part(calendar-day):hover {
+    background: #3a3a3a;
+}
+
+/* Select */
+ion-select::part(icon) {
+    color: var(--ion-text-color);
+}
+
+/* Modal Backdrop */
+ion-modal::part(backdrop) {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Input Highlights */
+ion-input.ion-focused {
+    --highlight-color-focused: var(--ion-color-primary);
+}
+
+ion-checkbox::part(checkbox) {
+    --checkmark-color: #000000;
+    /* Color del tick (debe contrastar con el fondo) */
+}
+
+ion-content {
+    position: relative;
+    height: 100%;
+}
+
+ion-datetime {
+    background: #222222;
+    position: absolute;
+    top: 35%;
+    padding-top: 5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    height: 50%;
+    max-width: 400px;
+    width: calc(100% - 32px);
+    z-index: 1;
+    opacity: 1 !important;
+    display: block !important;
+    --highlight-background: transparent !important;
+    --highlight-color: #000 !important;
+}
+
+ion-datetime::part(calendar-day-header) {
+    font-weight: bold !important; // Aumentar también el grosor de los días de la semana (L, M, X, etc.)
+}
+
+ion-datetime::part(calendar-day) {
+    font-size: 1.4rem !important; // Ajusta este valor según lo que te parezca más adecuado
+    font-weight: bold !important;
+    height: 90% !important;
+    width: 110% !important;
+    border-radius: 15px !important;
+    padding: 5px !important;
+}
+
+ion-datetime::part(day-highlighted),
+ion-datetime::part(day-selected),
+ion-datetime::part(day-today) {
+    background-color: #ffffff !important;
+    color: inherit !important;
+    border: none !important;
 }

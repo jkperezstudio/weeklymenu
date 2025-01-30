@@ -4,15 +4,15 @@ ion-content {
 }
 
 ion-datetime {
-    background: #222222;
+    background: #4c4c4c;
     position: absolute;
-    top: 30%; // Ajuste que has hecho para que quede un poco más arriba
+    top: 35%; // Ajuste que has hecho para que quede un poco más arriba
     padding-top: 5%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 16px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    height: 45%;
+    height: 50%;
     max-width: 400px;
     width: calc(100% - 32px);
 }

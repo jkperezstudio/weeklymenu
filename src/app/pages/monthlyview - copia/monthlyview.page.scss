@@ -1,0 +1,44 @@
+ion-content {
+    position: relative;
+    height: 100%;
+}
+
+ion-datetime {
+    background: #222222;
+    position: absolute;
+    top: 35%;
+    padding-top: 5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    height: 50%;
+    max-width: 400px;
+    width: calc(100% - 32px);
+    z-index: 1;
+    opacity: 1 !important;
+    display: block !important;
+    --highlight-background: transparent !important;
+    --highlight-color: #000 !important;
+}
+
+ion-datetime::part(calendar-day-header) {
+    font-weight: bold !important; // Aumentar también el grosor de los días de la semana (L, M, X, etc.)
+}
+
+ion-datetime::part(calendar-day) {
+    font-size: 1.4rem !important; // Ajusta este valor según lo que te parezca más adecuado
+    font-weight: bold !important;
+    height: 90% !important;
+    width: 110% !important;
+    border-radius: 15px !important;
+    padding: 5px !important;
+}
+
+ion-datetime::part(day-highlighted),
+ion-datetime::part(day-selected),
+ion-datetime::part(day-today) {
+    background-color: #ffffff !important;
+    color: inherit !important;
+    border: none !important;
+}

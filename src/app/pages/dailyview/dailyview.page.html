@@ -27,8 +27,8 @@
                 <div *ngFor="let meal of meals">
                     <ion-item-sliding *ngIf="meal && meal.name; else emptyMeal">
                         <ion-item lines="none">
-                            <ion-checkbox slot="end" [checked]="meal.done" (ionChange)="toggleMealDone(meal)"
-                                [ngClass]="getColorClass(meal)">
+                            <ion-checkbox slot="end" aria-label="CheckBox" [checked]="meal.done"
+                                (ionChange)="toggleMealDone(meal)" [ngClass]="getColorClass(meal)">
                             </ion-checkbox>
 
                             <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}">
@@ -61,7 +61,7 @@
                 Swipe to change day
                 <ion-icon name="arrow-forward"></ion-icon>
                 -->
-
+                :: SWIPE AREA ::
                 <!-- FAB dentro del footer 
                 <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
                     <ion-fab-button class="add-meal-fab">
@@ -70,7 +70,7 @@
                 </ion-fab>-->
 
 
-                <ion-button class="button-trapezoid">Click Me</ion-button>
+                <!-- <ion-button class="button-trapezoid">Click Me</ion-button>-->
             </div>
         </ion-card>
 
@@ -118,15 +118,33 @@
                     </ion-range>
                 </ion-item>
 
-                <ion-item class="alarm" lines="none">
-                    <ion-label>Defrosted Alarm?</ion-label>
-                    <ion-toggle slot="end" [(ngModel)]="currentMeal.reminder">
-                    </ion-toggle>
+
+                <ion-item lines="none">
+                    <ion-label>Alarma Descongelación</ion-label>
+                    <ion-toggle [checked]="currentMeal.defrostAlarm?.enabled || false"
+                        (ionChange)="handleDefrostToggle($event)"></ion-toggle>
                 </ion-item>
+
+                <!-- Corrección de la interpolación -->
+                <div *ngIf="currentMeal.defrostAlarm?.enabled">
+                    <ion-item lines="none">
+                        <ion-label>Hora Alarma</ion-label>
+                        <ion-button (click)="openTimePicker()">
+                            {{ (currentMeal.defrostAlarm?.scheduledTime | date:'shortTime') || 'Seleccionar' }}
+                        </ion-button>
+                    </ion-item>
+                </div>
+
+                <ion-popover [isOpen]="isTimePickerOpen">
+                    <ion-content>
+                        <ion-datetime presentation="time" [showDefaultButtons]="true"
+                            (ionChange)="onTimeSelected($event)" (ionCancel)="onTimePickerCancel()"></ion-datetime>
+                    </ion-content>
+                </ion-popover>
 
                 <ion-item class="delivery" lines="none">
                     <ion-label>Delivery?</ion-label>
-                    <ion-toggle slot="end" [(ngModel)]="currentMeal.delivery">
+                    <ion-toggle aria-label="Delivery Toggle" slot="end" [(ngModel)]="currentMeal.delivery">
                     </ion-toggle>
                 </ion-item>
 
@@ -137,4 +155,5 @@
             </ion-content>
         </ng-template>
     </ion-modal>
+
 </ion-content>

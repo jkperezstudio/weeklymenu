@@ -16,6 +16,7 @@ import { filter } from 'rxjs/operators';
   imports: [IonDatetime, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, RouterModule]
 })
 export class MonthlyViewPage implements OnInit {
+
   @ViewChild('calendar', { static: false }) calendar!: IonDatetime;
 
   currentDay: string = '';
@@ -35,9 +36,13 @@ export class MonthlyViewPage implements OnInit {
 
   async ngOnInit() {
     this.selectedDate = ''; // Limpia la selección actual
-    this.currentDay = ''; // Limpia el día actual también
 
-    // Suscribirse a los cambios de navegación
+    // Si `currentDay` está vacío, asignamos la fecha actual en formato ISO
+    if (!this.currentDay) {
+      this.currentDay = new Date().toISOString();
+    }
+
+    // Suscribirse a cambios de navegación
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
@@ -49,54 +54,60 @@ export class MonthlyViewPage implements OnInit {
     const scoresCollection = collection(this.firestore, 'dailyScores');
 
     onSnapshot(scoresCollection, (snapshot) => {
+
+      this.dayScores = {};
+
       snapshot.forEach((doc) => {
         const data = doc.data() as { year: number, month: number, day: number, color: string, isComplete: boolean };
         const dateKey = `${data.year}-${data.month.toString().padStart(2, '0')}-${data.day.toString().padStart(2, '0')}`;
         this.dayScores[dateKey] = {
           color: data.color,
-          isComplete: data.isComplete // Incluimos isComplete en dayScores
+          isComplete: data.isComplete
         };
       });
 
       console.log('Colores actualizados desde Firebase:', this.dayScores);
-
-      // Establece el color inicial del día actual SOLO si no hay día seleccionado
-      const today = new Date();
-      this.applyActiveDayColor(today);
-
       this.isCalendarReady = true;
+      this.highlightedDates = this.createHighlightedDatesFunction();
+      this.refreshCalendar();
       this.cdr.detectChanges();
+
     });
-
   }
 
+  private createHighlightedDatesFunction(): (isoString: string) => any {
+    return (isoString: string) => {
+      const date = new Date(isoString);
+      const dateKey = this.formatDateKey(date);
+      const dayData = this.dayScores[dateKey];
+
+      if (dayData) {
+        return {
+          textColor: dayData.isComplete ? '#000000' : '#898989',
+          backgroundColor: dayData.isComplete ? dayData.color : '#525357',
+        };
+      }
+
+      // Manejar el día actual
+      if (dateKey === this.formatDateKey(new Date(this.currentDay))) {
+        return {
+          textColor: '#FFFFFF',
+          backgroundColor: '#00FF00', // Color para el día actual (puedes cambiarlo)
+        };
+      }
+
+      return {
+        textColor: '#FFFFFF',
+        backgroundColor: '#222222',
+      };
+    };
+  }
+
+  // En el método clearSelectedDay:
   clearSelectedDay() {
-    // Lógica para reiniciar la selección del día
-    console.log('Reiniciando la selección del día...');
     this.selectedDate = '';
-  }
-
-  applyActiveDayColor(selectedDate: Date = new Date(), isDeselection: boolean = false) {
-    const dateKey = this.formatDateKey(selectedDate);
-    const dayData = this.dayScores[dateKey];
-    const datetimeElement = document.querySelector('ion-datetime') as HTMLIonDatetimeElement;
-
-    if (datetimeElement) {
-      if (isDeselection) {
-        // Si estamos deseleccionando un día, eliminamos cualquier color previamente aplicado
-        datetimeElement.style.removeProperty('--day-score-color');
-        console.log(`Deseleccionando día ${dateKey}, eliminando color personalizado.`);
-        return;
-      }
-
-      let color = '#222222'; // Color neutro por defecto
-      if (dayData && dayData.isComplete) {
-        color = dayData.color; // Usar el color solo si está completo
-      }
-
-      datetimeElement.style.setProperty('--day-score-color', color);
-      console.log(`Estableciendo --day-score-color: ${color} para el día ${dateKey}`);
-    }
+    this.currentDay = new Date().toISOString();
+    this.cdr.detectChanges();
   }
 
   formatDateKey(date: Date): string {
@@ -115,9 +126,6 @@ export class MonthlyViewPage implements OnInit {
     const selectedDate = new Date(event.detail.value);
     this.selectedDate = this.formatDateKey(selectedDate);
 
-    // Aplicar el color al nuevo día seleccionado
-    this.applyActiveDayColor(selectedDate);
-
     // Navegamos al día seleccionado después de un pequeño retraso
     setTimeout(() => {
       const day = selectedDate.getDate();
@@ -128,41 +136,14 @@ export class MonthlyViewPage implements OnInit {
     }, 50);
   }
 
-
   onDateChange(event: any) {
     const selectedDate = new Date(event.detail.value);
     this.selectedDate = selectedDate.toISOString(); // Actualiza el valor seleccionado
-    this.applyActiveDayColor(selectedDate); // Aplica los cambios visuales si corresponde
+    // Aplica los cambios visuales si corresponde
   }
 
-  highlightedDates = (isoString: string) => {
-    const date = new Date(isoString);
-    const dateKey = this.formatDateKey(date);
-    const dayData = this.dayScores[dateKey];
+  highlightedDates: (isoString: string) => any = () => ({});
 
-    if (dayData) {
-      // Podrías distinguir si es un día completo o parcial:
-      if (dayData.isComplete) {
-        // Día completo
-        return {
-          textColor: '#000000',
-          backgroundColor: dayData.color,
-        };
-      } else {
-        // Día parcial
-        return {
-          textColor: '#141218',
-          backgroundColor: '#3f384c',
-        };
-      }
-    }
-
-    // Si no hay datos de ese día, usa un color neutro
-    return {
-      textColor: '#FFFFFF',
-      backgroundColor: '#222222',
-    };
-  };
 
   resetCalendar() {
     const calendarElement = document.querySelector('ion-datetime') as HTMLIonDatetimeElement;
@@ -177,11 +158,23 @@ export class MonthlyViewPage implements OnInit {
         calendarElement.value = this.currentDay;
         calendarElement.dispatchEvent(new Event('ionChange'));
         this.cdr.detectChanges();
-        this.applyActiveDayColor(); // Reaplicamos el color personalizado
         console.log('Calendario reseteado.');
       }, 50);
     } else {
       console.warn('No se encontró el calendario para resetear.');
     }
+  }
+
+  private refreshCalendar() {
+    const currentValue = this.currentDay;
+
+    // Usar un valor diferente temporalmente (no vacío)
+    this.currentDay = new Date().toISOString();
+    this.cdr.detectChanges();
+
+    setTimeout(() => {
+      this.currentDay = currentValue;
+      this.cdr.detectChanges();
+    }, 50); // Aumentar el tiempo de espera
   }
 }
