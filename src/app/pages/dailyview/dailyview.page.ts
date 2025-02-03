@@ -42,7 +42,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     mealDoneControls: { [key: string]: FormControl } = {};
 
     public isTimePickerOpen = false;
-    public selectedTime: string = '12:00';
+    public selectedTime: string = '09:00';
 
 
 

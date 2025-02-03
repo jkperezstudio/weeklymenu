@@ -19,6 +19,13 @@
                 <ion-card-header>
                     <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
                     <h3 class="todaysdate">{{ formattedDate }}</h3>
+                    <!-- FAB dentro del header -->
+                    <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
+                        <ion-fab-button class="add-meal-fab">
+                            <ion-icon name="add"></ion-icon>
+                        </ion-fab-button>
+                    </ion-fab>
+
                 </ion-card-header>
             </div>
 
@@ -27,8 +34,8 @@
                 <div *ngFor="let meal of meals">
                     <ion-item-sliding *ngIf="meal && meal.name; else emptyMeal">
                         <ion-item lines="none">
-                            <ion-checkbox slot="end" [checked]="meal.done" (ionChange)="toggleMealDone(meal)"
-                                [ngClass]="getColorClass(meal)">
+                            <ion-checkbox aria-label="Meal Done Checkbox" slot="end" [checked]="meal.done"
+                                (ionChange)="toggleMealDone(meal)" [ngClass]="getColorClass(meal)">
                             </ion-checkbox>
 
                             <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}">
@@ -55,30 +62,24 @@
                     </ng-template>
                 </div>
             </ion-card-content>
-            <div class="swipe-footer">
-                <ion-icon name="arrow-back"></ion-icon>
-                Swipe to change day
-                <ion-icon name="arrow-forward"></ion-icon>
 
-                <!-- FAB dentro del footer -->
-                <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
-                    <ion-fab-button class="add-meal-fab">
-                        <ion-icon name="add"></ion-icon>
-                    </ion-fab-button>
-                </ion-fab>
+            <div class="swipe-footer">
+                <!-- Botones SIN la clase navigation-buttons -->
+                <ion-button (click)="navigateToDate(goToPreviousDay())">
+                    <ion-icon name="arrow-back"></ion-icon>
+                </ion-button>
+
+                <ion-button (click)="navigateToDate(goToNextDay())">
+                    <ion-icon name="arrow-forward"></ion-icon>
+                </ion-button>
             </div>
         </ion-card>
 
         <!-- Botones fijos en la parte inferior -->
         <div class="buttons-container">
-            <ion-button expand="block" (click)="finalizeDay()" [disabled]="!isDayComplete()"
+            <ion-button (click)="finalizeDay()" [disabled]="!isDayComplete()"
                 [color]="isDayComplete() ? 'primary' : 'medium'">
                 Finalize Day</ion-button>
-
-            <div class="navigation-buttons">
-                <ion-button (click)="navigateToDate(goToPreviousDay())">Previous</ion-button>
-                <ion-button (click)="navigateToDate(goToNextDay())">Next</ion-button>
-            </div>
         </div>
     </div>
 
@@ -124,7 +125,7 @@
                     <ng-template #alarmSet>
                         <!-- Si ya hay alarma, se muestra un botón con la hora -->
                         <ion-button fill="outline" slot="end" (click)="openTimePicker()">
-                            {{ currentMeal.alarmTime | date:'shortTime' }}
+                            {{ currentMeal.alarmTime | date:'HH:mm' }}
                         </ion-button>
                         <ion-button fill="clear" color="danger" (click)="removeAlarm()">
                             <ion-icon name="trash"></ion-icon>
@@ -145,8 +146,9 @@
                             </ion-toolbar>
                         </ion-header>
                         <ion-content>
-                            <ion-datetime name="timePicker" presentation="time" displayFormat="h:mm A"
-                                [(ngModel)]="selectedTime"></ion-datetime>
+                            <ion-datetime name="timePicker" presentation="time" displayFormat="HH:mm"
+                                pickerFormat="HH:mm" [(ngModel)]="selectedTime">
+                            </ion-datetime>
 
                         </ion-content>
                     </ng-template>
