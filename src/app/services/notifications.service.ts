@@ -21,13 +21,18 @@ export class NotificationsService {
       notifications: [{
         id: notificationId,
         title: '¡Defrost Time!',
-        body: `Time to defrost ${meal.name}`,
+        body: `It's time to unfrost ${meal.name}`,
         schedule: { at: targetDate },
+        sound: 'default',
         smallIcon: 'defrostalarm',
-        sound: 'alarmbeep',
         extra: { mealId: meal.id }
       }]
     });
+
+    if (targetDate < new Date()) {
+      throw new Error('No se pueden programar alarmas en el pasado');
+    }
+
 
     return notificationId;
   }

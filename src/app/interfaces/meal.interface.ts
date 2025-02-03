@@ -8,17 +8,16 @@ export interface Meal {
     done: boolean;
     mealtype: string;
     description?: string | null;
+    alarms?: string[];
+    alarmTime?: string;
+    notificationId?: number;
     reminder?: boolean;
     reminderTime?: string;
     delivery?: boolean;
     recipe?: string | null;
     url?: string | null;
     image?: string | null;
-    defrostAlarm?: {
-        enabled: boolean;
-        scheduledTime: string; // ISO string
-        notificationId?: number;
-    };
+
 }
 
 

@@ -2,30 +2,45 @@ import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, ChangeDetector
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
-import { AlertController, ModalController, GestureController, Gesture, IonicModule } from '@ionic/angular';
+import { AlertController, ModalController, GestureController, Gesture } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 import { Firestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import { DayCompleteModalComponent } from '../../day-complete-modal/day-complete-modal.component';
+import { IonHeader, IonItem, IonLabel, IonButton, IonItemOption, IonItemOptions, IonItemSliding, IonCardContent, IonCardTitle, IonCardHeader, IonCard, IonContent, IonTitle, IonToolbar, IonButtons, IonModal, IonList, IonMenuButton, IonInput, IonRange, IonToggle, IonIcon, IonFab, IonFabButton } from "@ionic/angular/standalone";
 import { addIcons } from 'ionicons';
-import { arrowBack, arrowForward, add, trash } from 'ionicons/icons';
+import { arrowBack, arrowForward, add } from 'ionicons/icons';
 import { NotificationsService } from '../../services/notifications.service';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-
 
 @Component({
     selector: 'app-dailyview',
     templateUrl: './dailyview.page.html',
     styleUrls: ['./dailyview.page.scss'],
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule],
+    imports: [
+        IonList, IonModal, IonButtons, IonToolbar, IonTitle, IonContent, IonCard, IonCardHeader,
+        IonCardTitle, IonCardContent, IonItemSliding, IonItemOptions, IonItemOption, IonButton,
+        IonLabel, IonItem, IonHeader, CommonModule, FormsModule, ReactiveFormsModule,
+        IonMenuButton, IonInput, IonRange, IonToggle /*IonIcon, IonFab, IonFabButton*/
+    ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
-
 })
+
+
+
 export class DailyviewPage implements OnInit, AfterViewInit {
 
     @ViewChild('gestureContainer', { static: true }) gestureContainer!: ElementRef;
     @ViewChild('mealCard', { read: ElementRef }) mealCard!: ElementRef;
+
     private gesture!: Gesture;
+
+    defrostEnabled = false;
+    selectedTime: string = ''; // Para que TypeScript no se queje
+    isTimePickerOpen = false; // controla la visibilidad
+    alarmEnabled = false;
+    scheduledAlarmId?: number;
 
 
     day: number = 0;
@@ -38,13 +53,18 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
     isSlidingItemOpen = false;
     isModalOpen = false;
-    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', reminder: false, delivery: false };
+    currentMeal: Meal = {
+        id: '',
+        name: '',
+        score: 0,
+        done: false,
+        mealtype: '',
+        reminder: false,
+        reminderTime: '',
+        delivery: false,
+    };
+
     mealDoneControls: { [key: string]: FormControl } = {};
-
-    public isTimePickerOpen = false;
-    public selectedTime: string = '12:00';
-
-
 
     meals: Meal[] = [
         { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
@@ -55,50 +75,40 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     static dayScores: { [date: string]: { score: number; color: string } } = {};
 
     constructor(
+        private notificationsService: NotificationsService,
         private alertController: AlertController,
         private route: ActivatedRoute,
         private firestore: Firestore,
         private modalCtrl: ModalController,
         private gestureCtrl: GestureController,
-        private notificationsService: NotificationsService,
         private cdr: ChangeDetectorRef
+    ) {
+        addIcons({ arrowBack, arrowForward, add });
+    }
 
-    ) { addIcons({ arrowBack, arrowForward, add, trash }); }
-
-
-    /**
-     * ----------------------------------------------------------------
-     * 1. Ajustamos ngOnInit para solo leer el parámetro y cargar allMealData
-     * ----------------------------------------------------------------
-     */
     ngOnInit() {
         // Obtenemos el parámetro 'day' de la URL
         this.route.paramMap.subscribe(async (params) => {
             const dateParam = params.get('day');
             if (dateParam) {
-                // Si hay un parámetro, dividimos en año, mes y día
                 const [year, month, day] = dateParam.split('-').map(Number);
                 this.year = year;
                 this.month = month;
                 this.day = day;
             } else {
-                // Si no hay parámetro, usamos la fecha actual
                 const currentDate = new Date();
                 this.year = currentDate.getFullYear();
                 this.month = currentDate.getMonth() + 1;
                 this.day = currentDate.getDate();
             }
 
-            // Creamos una fecha formateada
             this.formattedDate = new Date(this.year, this.month - 1, this.day).toDateString();
             console.log('Formatted date (from route or current):', this.formattedDate);
 
-            // Llamamos a loadDayData() para cargar la info de Firestore de este día
+            // Carga datos del día
             await this.loadDayData();
 
-            /**
-             * Cargamos también la colección "meals" global para las sugerencias
-             */
+            // Cargar la colección "meals" para sugerencias
             try {
                 const mealsRef = collection(this.firestore, 'meals');
                 const querySnap = await getDocs(mealsRef);
@@ -118,18 +128,13 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 console.error('Error cargando comidas (allMealData):', error);
             }
 
-            // Inicializamos los controles del formulario
+            // Inicializa formControls
             this.meals.forEach(meal => {
                 this.mealDoneControls[meal.id] = new FormControl(meal.done);
             });
         });
     }
 
-    /**
-     * ----------------------------------------------------------------
-     * 2. Cargar la info del día (Firestore) en su propia función
-     * ----------------------------------------------------------------
-     */
     async loadDayData() {
         try {
             const dateKey = `${this.year}-${this.month}-${this.day}`;
@@ -139,11 +144,14 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             if (docSnap.exists()) {
                 const data = docSnap.data() as FirestoreDayData;
                 this.meals = data.meals || this.getDefaultMeals();
+
+                // Restaurar alarmas
+                await this.restoreScheduledAlarms();
             } else {
                 this.meals = this.getDefaultMeals();
             }
 
-            this.cdr.detectChanges(); // <-- Actualiza la UI aquí también
+            this.cdr.detectChanges();
         } catch (error) {
             console.error('Error al cargar datos:', error);
             this.meals = this.getDefaultMeals();
@@ -151,7 +159,34 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         }
     }
 
-    // Añade esta función para obtener las comidas por defecto
+    private async restoreScheduledAlarms() {
+        for (const meal of this.meals) {
+            if (meal.defrostAlarm?.scheduledTime) {
+                try {
+                    const alarmDate = new Date(meal.defrostAlarm.scheduledTime);
+
+                    if (alarmDate > new Date()) { // Solo si es futura
+                        const notificationId = await this.notificationsService.scheduleDefrostAlarm(
+                            meal, // ← Usamos la meal del loop, no this.currentMeal
+                            alarmDate
+                        );
+
+                        // Actualizamos la meal del array
+                        meal.defrostAlarm = {
+                            ...meal.defrostAlarm,
+                            notificationId: notificationId
+                        };
+                    }
+                } catch (error) {
+                    console.error(`Error restaurando alarma para ${meal.name}:`, error);
+                    meal.defrostAlarm!.enabled = false;
+                }
+            }
+        }
+    }
+
+
+
     private getDefaultMeals(): Meal[] {
         return [
             { id: '1', mealtype: 'Breakfast', name: '', score: 0, done: false, reminder: false },
@@ -160,23 +195,16 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         ];
     }
 
-    /**
-     * ----------------------------------------------------------------
-     * 3. Configuración del gesto de swipe en ngAfterViewInit 
-     *    usando onEnd en lugar de onMove
-     * ----------------------------------------------------------------
-     */
     ngAfterViewInit() {
-        // Cambiar de .swipe-header a .swipe-footer
         const swipeFooter = this.mealCard.nativeElement.querySelector('.swipe-footer');
 
         this.gesture = this.gestureCtrl.create({
-            el: swipeFooter, // <<--- Aquí el cambio clave
+            el: swipeFooter,
             gestureName: 'footer-swipe',
             threshold: 30,
             onStart: () => {
                 this.mealCard.nativeElement.style.transition = 'none';
-                swipeFooter.classList.add('swiping'); // Añade clase
+                swipeFooter.classList.add('swiping');
             },
             onMove: (ev) => {
                 this.mealCard.nativeElement.style.transform = `translateX(${ev.deltaX}px)`;
@@ -199,15 +227,12 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
     handleSwipeEnd(event: any) {
         if (event.deltaX > 50) {
-            // Deslizó a la derecha => día anterior
             this.goToPreviousDay();
         } else if (event.deltaX < -50) {
-            // Deslizó a la izquierda => día siguiente
             this.goToNextDay();
         }
     }
 
-    // Ejemplo de implementación correcta:
     goToPreviousDay(): Date {
         const current = new Date(this.year, this.month - 1, this.day);
         return new Date(current.setDate(current.getDate() - 1));
@@ -219,45 +244,40 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     async navigateToDate(date: Date) {
-        console.log('Navegando a:', this.year, this.month, this.day);
-
-        // Actualiza las variables de fecha
         this.year = date.getFullYear();
         this.month = date.getMonth() + 1;
         this.day = date.getDate();
-
-        // Fuerza la actualización de la vista
         this.formattedDate = date.toDateString();
 
-        // Recarga los datos del nuevo día
         await this.loadDayData();
-
-        // Detecta cambios manualmente
         this.cdr.detectChanges();
     }
 
-
     openMealForm(meal: Meal) {
-        this.currentMeal = meal
-            ? { ...meal, done: false }
-            : {
-                id: '',
-                name: '',
-                score: 0,
-                done: false,
-                mealtype: '',
-                reminder: false,
-                delivery: false,
-                alarms: []
-
-            };
+        this.currentMeal = meal ? {
+            ...meal,
+            defrostAlarm: meal.defrostAlarm ? {
+                enabled: meal.defrostAlarm.enabled,
+                scheduledTime: meal.defrostAlarm.scheduledTime || '', // Inicializar como cadena vacía si es undefined
+                notificationId: meal.defrostAlarm.notificationId
+            } : undefined
+        } : {
+            id: '',
+            name: '',
+            score: 0,
+            done: false,
+            mealtype: 'Custom',
+            reminder: false,
+            delivery: false,
+            defrostAlarm: {
+                enabled: false,
+                scheduledTime: '' // Inicializar como cadena vacía
+            }
+        };
         this.isModalOpen = true;
-
-        // Fuerza la detección de cambios para actualizar la UI
-        this.cdr.detectChanges(); // <-- Añade esta línea
-
-        console.log('Modal debería abrirse ahora');
+        this.cdr.detectChanges();
     }
+
 
     closeModal() {
         this.isModalOpen = false;
@@ -265,7 +285,6 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     onModalDismiss(event: any) {
-        console.log('Modal dismissed:', event);
         this.isModalOpen = false;
         this.suggestions = [];
     }
@@ -298,10 +317,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                     {
                         text: 'No Thanks',
                         role: 'cancel',
-                        handler: () => {
-                            console.log('User chose not to add the meal to the database.');
-                            resolve(false);
-                        }
+                        handler: () => resolve(false)
                     },
                     {
                         text: 'Add',
@@ -317,7 +333,13 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     async saveMeal() {
-        console.log('Saving meal:', this.currentMeal);
+        if (this.currentMeal.defrostAlarm && !this.currentMeal.defrostAlarm.enabled) {
+            this.currentMeal.defrostAlarm = {
+                enabled: false,
+                scheduledTime: ''
+            };
+        }
+
 
         if (!this.currentMeal.name || !this.currentMeal.score) {
             console.error('Meal name and score are required');
@@ -362,8 +384,6 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             };
             await addDoc(mealsRef, newMealData);
             console.log('New meal added to the database:', newMealData);
-
-            // Añadirlo a las sugerencias locales
             this.allMealData.push(newMealData);
         } catch (error) {
             console.error('Error adding meal to the database:', error);
@@ -388,7 +408,6 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                     handler: () => {
                         this.meals = this.meals.filter(m => m.id !== meal.id);
                         this.saveDayDataToFirebase();
-                        console.log(`Meal "${meal.name}" deleted.`);
                     }
                 }
             ]
@@ -396,14 +415,12 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     editMeal(meal: Meal) {
-        console.log('Editando comida existente:', meal);
         this.openMealForm(meal);
     }
 
     toggleMealDone(meal: Meal): void {
         meal.done = !meal.done;
         this.saveDayDataToFirebase();
-        console.log('Meal status updated and saved in Firebase:', meal);
     }
 
     isDayComplete(): boolean {
@@ -429,7 +446,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                     meals: this.meals
                 }, { merge: true });
 
-                console.log('Day finalized and saved to Firestore:', { averageScore, color, isComplete: true });
+                console.log('Day finalized and saved:', { averageScore, color });
 
                 const modal = await this.modalCtrl.create({
                     component: DayCompleteModalComponent,
@@ -470,45 +487,51 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     saveDayDataToFirebase() {
         const docRef = doc(this.firestore, 'dailyScores', `${this.year}-${this.month}-${this.day}`);
 
-        getDoc(docRef).then((docSnap) => {
-            const sanitizedMeals = this.meals.map(meal => ({
-                ...meal,
-                done: meal.done || false,
-            }));
+        getDoc(docRef)
+            .then((docSnap) => {
+                const sanitizedMeals = this.meals.map(meal => ({
+                    ...meal,
+                    done: meal.done || false
+                }));
 
-            if (docSnap.exists()) {
-                const existingData = docSnap.data() as FirestoreDayData;
-                const updatedData: FirestoreDayData = {
-                    ...existingData,
-                    meals: sanitizedMeals,
-                    score: existingData.score,
-                    color: existingData.color,
-                    isComplete: existingData.isComplete
-                };
+                if (docSnap.exists()) {
+                    const existingData = docSnap.data() as FirestoreDayData;
+                    const updatedData: FirestoreDayData = {
+                        ...existingData,
+                        meals: sanitizedMeals,
+                        score: existingData.score,
+                        color: existingData.color,
+                        isComplete: existingData.isComplete
+                    };
 
-                updateDoc(docRef, updatedData)
-                    .then(() => console.log('Documento actualizado (sólo meals):', updatedData))
-                    .catch((error) => console.error('Error al actualizar:', error));
+                    updateDoc(docRef, updatedData)
+                        .then(() => console.log('Documento actualizado (sólo meals):', updatedData))
+                        .catch((error) => console.error('Error al actualizar:', error));
 
-            } else {
-                const initialData: FirestoreDayData = {
-                    year: this.year,
-                    month: this.month,
-                    day: this.day,
-                    meals: sanitizedMeals,
-                    score: 0,
-                    color: '#222222',
-                    isComplete: false
-                };
+                } else {
+                    const initialData: FirestoreDayData = {
+                        year: this.year,
+                        month: this.month,
+                        day: this.day,
+                        meals: sanitizedMeals,
+                        score: 0,
+                        color: '#222222',
+                        isComplete: false
+                    };
 
-                setDoc(docRef, initialData)
-                    .then(() => console.log('Documento creado (día nuevo):', initialData))
-                    .catch((error) => console.error('Error al crear doc:', error));
-            }
-        })
+                    setDoc(docRef, initialData)
+                        .then(() => console.log('Documento creado (día nuevo):', initialData))
+                        .catch((error) => console.error('Error al crear doc:', error));
+                }
+            })
             .catch((error) => console.error('Error al leer doc:', error));
     }
 
+    /**
+     * -------------------------------------------------------------
+     * LA FUNCIÓN clearMealContent :)
+     * -------------------------------------------------------------
+     */
     clearMealContent(meal: Meal) {
         this.alertController.create({
             header: 'Clear Meal',
@@ -530,6 +553,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                         meal.done = false;
                         meal.reminder = false;
                         meal.delivery = false;
+                        // Hay que incluir también para hacer el Clear sobre la alarma de descongelar
                         this.saveDayDataToFirebase();
                         console.log(`Content of "${meal.mealtype}" cleared.`);
                     }
@@ -538,120 +562,224 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         }).then(alert => alert.present());
     }
 
-    onReminderToggle(event: any) {
-        if (event.detail.checked && this.currentMeal.alarms?.length === 0) {
-            this.addAlarm();
-        }
-    }
+    /**
+     * Métodos del toggle y datetime para notificaciones
+     */
+    async handleDefrostToggle(event: any) {
+        const enabled = event.detail.checked;
 
-    addAlarm() {
-        // Puedes usar ion-datetime o un prompt para simplificar.
-        const nuevaHora = prompt("Ingresa la hora (HH:mm):");
-        if (nuevaHora) {
-            this.currentMeal.alarms?.push(nuevaHora);
+        if (!this.currentMeal.defrostAlarm) {
+            this.currentMeal.defrostAlarm = {
+                enabled: false,
+                scheduledTime: ''
+            };
         }
-    }
 
-    toggleAlarm(ev: any) {
-        if (ev.detail.checked) {
-            // Si se activa, abre el modal de selección de hora
-            this.openDatetimeModal();
-        }
-    }
+        this.currentMeal.defrostAlarm.enabled = enabled;
 
-    async openDatetimeModal() {
-        // Aquí deberías abrir un modal con ion-datetime.
-        // Por simplicidad usamos prompt, pero lo ideal es un modal aparte.
-        const input = prompt("Ingresa la hora (HH:mm):", "12:00");
-        if (input) {
-            const [hours, minutes] = input.split(':').map(Number);
-            const targetDate = new Date();
-            targetDate.setHours(hours, minutes, 0, 0);
-            // Comprueba que la hora es futura
-            if (targetDate < new Date()) {
-                alert("La hora debe ser en el futuro");
-                this.currentMeal.reminder = false;
-                return;
-            }
-            // Guarda la hora en ISO (o el formato que prefieras)
-            this.currentMeal.alarmTime = targetDate.toISOString();
-            // Programa la notificación
-            try {
-                const notificationId = await this.notificationsService.scheduleDefrostAlarm(this.currentMeal, targetDate);
-                this.currentMeal.notificationId = notificationId;
-            } catch (error: any) {
-                alert("Error al programar la alarma: " + error.message);
-                this.currentMeal.reminder = false;
-            }
+        if (enabled) {
+            await this.notificationsService.requestPermissions();
+            this.openTimePicker();
         } else {
-            // Si cancela, desactiva el toggle
-            this.currentMeal.reminder = false;
+            if (this.currentMeal.defrostAlarm.notificationId) {
+                await this.notificationsService.cancelDefrostAlarm(
+                    this.currentMeal.defrostAlarm.notificationId
+                );
+            }
+            this.currentMeal.defrostAlarm.scheduledTime = '';
         }
     }
 
-    editAlarm() {
-        // Abre nuevamente el modal de datetime para editar la hora
-        this.openDatetimeModal();
+
+
+    async scheduleAlarm() {
+        try {
+            if (!this.currentMeal.defrostAlarm?.scheduledTime) return;
+
+            const dateTime = new Date(this.currentMeal.defrostAlarm.scheduledTime);
+
+            // Llamada corregida con ambos parámetros
+            const notificationId = await this.notificationsService.scheduleDefrostAlarm(
+                this.currentMeal, // ← Primer parámetro (Meal)
+                dateTime          // ← Segundo parámetro (Date)
+            );
+
+            // Actualizar el ID de notificación
+            if (this.currentMeal.defrostAlarm) {
+                this.currentMeal.defrostAlarm.notificationId = notificationId;
+            }
+        } catch (error) {
+            console.error('Error scheduling alarm:', error);
+        }
     }
 
-    removeAlarm() {
-        // Cancela la notificación si existe y limpia la alarma
-        if (this.currentMeal.notificationId) {
-            this.notificationsService.cancelDefrostAlarm(this.currentMeal.notificationId);
+
+
+    // Cuando el usuario toca el toggle de 'reminder'
+    async onMealReminderToggle() {
+        if (this.currentMeal.reminder) {
+            // Pide permisos si está activando la alarma
+            await this.notificationsService.requestPermissions();
+
+        } else {
+            // Si lo desactiva, cancelamos la notificación
+            await this.notificationsService.cancelDefrostAlarm(this.currentMeal.defrostAlarm?.notificationId!);
+
         }
-        this.currentMeal.alarmTime = undefined;
-        this.currentMeal.notificationId = undefined;
-        this.currentMeal.reminder = false;
     }
+
+
 
     openTimePicker() {
         this.isTimePickerOpen = true;
+
+        // Inicializar defrostAlarm si no existe
+        if (!this.currentMeal.defrostAlarm) {
+            this.currentMeal.defrostAlarm = {
+                enabled: true,
+                scheduledTime: new Date().toISOString()
+            };
+        }
     }
 
-    cancelTimePicker() {
+
+    closeTimePicker() {
         this.isTimePickerOpen = false;
-        this.currentMeal.reminder = false; // Opcional: desactiva el toggle si se cancela
+    }
+
+
+
+
+
+    async cancelAlarm() {
+        if (this.currentMeal.defrostAlarm?.notificationId) {
+            // Llamada corregida con parámetro
+            await this.notificationsService.cancelDefrostAlarm(
+                this.currentMeal.defrostAlarm.notificationId
+            );
+            this.currentMeal.defrostAlarm.notificationId = undefined;
+        }
+    }
+
+
+    // Actualizar las llamadas de permisos
+    async enableAlarm() {
+        await this.notificationsService.requestPermissions(); // ← Nombre corregido
+        this.openTimePicker();
+    }
+
+
+
+    async onTimeSelected(event: any) {
+        const selectedTime = event.detail.value;
+        this.isTimePickerOpen = false;
+
+        if (!this.currentMeal.defrostAlarm) return;
+
+        try {
+            const targetDate = new Date(selectedTime);
+
+            // Cancelar alarma anterior si existe
+            if (this.currentMeal.defrostAlarm.notificationId) {
+                await this.notificationsService.cancelDefrostAlarm(
+                    this.currentMeal.defrostAlarm.notificationId
+                );
+            }
+
+            // Programar nueva alarma
+            const notificationId = await this.notificationsService.scheduleDefrostAlarm(
+                this.currentMeal,
+                targetDate
+            );
+
+            // Actualizar modelo
+            this.currentMeal.defrostAlarm = {
+                enabled: true,
+                scheduledTime: selectedTime,
+                notificationId: notificationId
+            };
+
+        } catch (error) {
+            console.error('Error al programar alarma:', error);
+            this.currentMeal.defrostAlarm.enabled = false;
+            this.showAlert('Error', 'No se pudo programar la alarma');
+        }
+    }
+
+
+
+
+    onTimePickerCancel() {
+        this.isTimePickerOpen = false;
+        this.alarmEnabled = false; // Desactivar si cancela
+        this.selectedTime = '';
     }
 
     onTimePickerDismiss() {
         this.isTimePickerOpen = false;
-    }
 
-    confirmTimePicker() {
-        const now = new Date();
-        // Suponemos que selectedTime es "HH:mm"
-        const [hoursStr, minutesStr] = this.selectedTime.split(':');
-        const hours = parseInt(hoursStr, 10);
-        const minutes = parseInt(minutesStr, 10);
-
-        // Crea una fecha con el día de hoy y la hora seleccionada
-        let selectedDate = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            hours,
-            minutes,
-            0
-        );
-
-        // Si la hora ya pasó, prográmala para el día siguiente
-        if (selectedDate <= now) {
-            selectedDate.setDate(selectedDate.getDate() + 1);
+        // Solo desactivar si no hay hora seleccionada
+        if (!this.selectedTime) {
+            this.alarmEnabled = false;
         }
-
-        this.currentMeal.alarmTime = selectedDate.toISOString();
-
-        this.notificationsService.scheduleDefrostAlarm(this.currentMeal, selectedDate)
-            .then(id => this.currentMeal.notificationId = id)
-            .catch(err => {
-                alert("Error al programar la alarma: " + err.message);
-                this.currentMeal.reminder = false;
-            });
-
-
-        this.isTimePickerOpen = false;
     }
+
+
+
+
+    private parseTimeString(timeString: string): Date | null {
+        if (!timeString) return null;
+
+        try {
+            // Usar la fecha actual de la vista (no la fecha del sistema)
+            const baseDate = new Date(this.year, this.month - 1, this.day);
+            const timeParts = timeString.split('T')[1].split(':');
+
+            return new Date(
+                baseDate.getFullYear(),
+                baseDate.getMonth(),
+                baseDate.getDate(),
+                parseInt(timeParts[0]),
+                parseInt(timeParts[1])
+            );
+        } catch (error) {
+            console.error('Error parsing time:', error);
+            return null;
+        }
+    }
+
+
+
+    private handleAlarmError() {
+        this.showAlert('Error', 'No se pudo programar la alarma');
+        this.alarmEnabled = false;
+        this.selectedTime = '';
+
+        if (this.currentMeal.defrostAlarm) {
+            this.currentMeal.defrostAlarm.enabled = false;
+            this.currentMeal.defrostAlarm.notificationId = undefined;
+        }
+    }
+
+
+
+
+    private async showAlert(header: string, message: string) {
+        const alert = await this.alertController.create({
+            header,
+            message,
+            buttons: ['OK']
+        });
+        await alert.present();
+    }
+
+
+    // En dailyview.page.ts
+    async checkPendingNotifications() {
+        const pending = await LocalNotifications.getPending(); // Ahora reconocerá LocalNotifications
+        console.log('Notificaciones pendientes:', pending.notifications);
+    }
+
 
 
 }
-
