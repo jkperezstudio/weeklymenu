@@ -28,6 +28,7 @@
 /* src/theme/variables.css */
 :root {
     /* ========== CORE COLORS ========== */
+    --ion-color-primary: #901050;
     --ion-background-color: #121212;
     --ion-background-color-rgb: 18, 18, 18;
     --ion-text-color: #ffffff;
@@ -93,9 +94,11 @@
         color: var(--ion-text-color) !important;
     }
 
+    /*
     ion-datetime::part(calendar-day):hover {
         background: #3a3a3a !important;
     }
+*/
 
     /* Highlighted days */
     ion-datetime::part(day-highlighted),
@@ -224,4 +227,8 @@ ion-datetime::part(day-today) {
     background-color: #ffffff !important;
     color: inherit !important;
     border: none !important;
+}
+
+ion-datetime .datetime-header .datetime-selected-date {
+    margin-top: 10px !important;
 }

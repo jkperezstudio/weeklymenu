@@ -618,40 +618,29 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     confirmTimePicker() {
-        const now = new Date();
-        // Suponemos que selectedTime es "HH:mm"
         const [hoursStr, minutesStr] = this.selectedTime.split(':');
         const hours = parseInt(hoursStr, 10);
         const minutes = parseInt(minutesStr, 10);
+        // Usa la fecha del día específico en lugar de la fecha actual:
+        let targetDate = new Date(this.year, this.month - 1, this.day, hours, minutes, 0);
 
-        // Crea una fecha con el día de hoy y la hora seleccionada
-        let selectedDate = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            hours,
-            minutes,
-            0
-        );
-
-        // Si la hora ya pasó, prográmala para el día siguiente
-        if (selectedDate <= now) {
-            selectedDate.setDate(selectedDate.getDate() + 1);
+        // Si la hora ya pasó para ese día, puedes mostrar un error o evitar programar la notificación
+        if (targetDate < new Date()) {
+            alert("La hora seleccionada ya pasó para este día.");
+            return;
         }
 
-        this.currentMeal.alarmTime = selectedDate.toISOString();
+        this.currentMeal.alarmTime = targetDate.toISOString();
 
-        this.notificationsService.scheduleDefrostAlarm(this.currentMeal, selectedDate)
-            .then(id => this.currentMeal.notificationId = id)
+        this.notificationsService.scheduleDefrostAlarm(this.currentMeal, targetDate)
+            .then(id => {
+                this.currentMeal.notificationId = id;
+                this.isTimePickerOpen = false;
+            })
             .catch(err => {
                 alert("Error al programar la alarma: " + err.message);
                 this.currentMeal.reminder = false;
             });
-
-
-        this.isTimePickerOpen = false;
     }
-
-
 }
 

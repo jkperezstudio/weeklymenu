@@ -1,3 +1,4 @@
+<!--
 <ion-header [translucent]="true">
     <ion-toolbar>
         <ion-buttons slot="start">
@@ -7,6 +8,7 @@
         <ion-title>Daily View</ion-title>
     </ion-toolbar>
 </ion-header>
+-->
 
 <ion-content>
     <!-- Contenedor principal -->
@@ -14,20 +16,16 @@
         <!-- Tarjeta de comidas -->
         <ion-card #mealCard class="todaysmealcontent">
 
-            <!-- Área de gesto (SOLO aquí funciona el swipe para cambiar día) -->
-            <div class="swipe-header">
-                <ion-card-header>
-                    <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
-                    <h3 class="todaysdate">{{ formattedDate }}</h3>
-                    <!-- FAB dentro del header -->
-                    <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
-                        <ion-fab-button class="add-meal-fab">
-                            <ion-icon name="add"></ion-icon>
-                        </ion-fab-button>
-                    </ion-fab>
-
-                </ion-card-header>
-            </div>
+            <ion-card-header>
+                <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
+                <h3 class="todaysdate">{{ formattedDate }}</h3>
+                <!-- FAB dentro del header -->
+                <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
+                    <ion-fab-button class="add-meal-fab">
+                        <ion-icon name="add"></ion-icon>
+                    </ion-fab-button>
+                </ion-fab>
+            </ion-card-header>
 
             <!-- Lista de comidas (área independiente con scroll) -->
             <ion-card-content class="meals-content">
@@ -94,11 +92,11 @@
 
             <ion-content class="modal-container">
 
-                <ion-item lines="none">
-                    <ion-input class="name" label="Name" placeholder="Enter meal name" labelPlacement="floating"
-                        required [(ngModel)]="currentMeal.name" (ionInput)="filterSuggestions()">
-                    </ion-input>
-                </ion-item>
+
+                <ion-input class="name" label="Name" placeholder="Enter meal name" labelPlacement="floating"
+                    fill="outline" required [(ngModel)]="currentMeal.name" (ionInput)="filterSuggestions()">
+                </ion-input>
+
 
                 <!-- Lista de sugerencias -->
                 <ion-list lines="none" *ngIf="suggestions.length > 0" class="suggestion-list">
@@ -138,16 +136,16 @@
                     <ng-template>
                         <ion-header>
                             <ion-toolbar>
-                                <ion-title>Selecciona la hora</ion-title>
+                                <ion-title>Set the time</ion-title>
                                 <ion-buttons slot="end">
-                                    <ion-button (click)="cancelTimePicker()">Cancelar</ion-button>
+                                    <ion-button (click)="cancelTimePicker()">Cancel</ion-button>
                                     <ion-button (click)="confirmTimePicker()">OK</ion-button>
                                 </ion-buttons>
                             </ion-toolbar>
                         </ion-header>
                         <ion-content>
-                            <ion-datetime name="timePicker" presentation="time" displayFormat="HH:mm"
-                                pickerFormat="HH:mm" [(ngModel)]="selectedTime">
+                            <ion-datetime class="timePickerModal" name="timePicker" presentation="time"
+                                displayFormat="HH:mm" pickerFormat="HH:mm" [(ngModel)]="selectedTime">
                             </ion-datetime>
 
                         </ion-content>

@@ -1,13 +1,3 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-    <img class="icon-upper-bar" src="assets/sidebaricons/form.png" slot="start" width="32" height="32" />
-    <ion-title>Meal Form</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
@@ -16,38 +6,38 @@
   </ion-header>
 
   <ion-card>
+    <ion-card-header>
+      <ion-card-title class="mealformtitle">Meal Form</ion-card-title>
+    </ion-card-header>
     <!-- Indicador de carga -->
     <div class="loading-overlay" *ngIf="isLoading">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
     <!-- Campo de Nombre y Score -->
-    <ion-item fill="outline" lines="none">
-      <div class="name-score-wrapper">
-        <!-- Campo de Name -->
-        <ion-input class="name" label="Name" labelPlacement="floating" maxlength="50"
-          placeholder="Enter the meal name... (required)" [formControl]="mealNameControl" required fill="outline">
-        </ion-input>
 
-        <!-- Campo de Score -->
-        <ion-range label="Score" [formControl]="scoreControl" min="1" max="5" step="1" snaps="true" ticks="true"
-          [ngStyle]="{'--knob-background': getScoreColor(scoreControl.value)}">
-        </ion-range>
-      </div>
-    </ion-item>
-
-    <ion-item lines="none">
-      <ion-input class="description" label="Description" fill="outline" maxlength="250" labelPlacement="floating"
-        placeholder="Add a short description... (optional)" [formControl]="descriptionControl">
+    <div class="name-score-wrapper">
+      <!-- Campo de Name -->
+      <ion-input class="name" label="Name" labelPlacement="floating" maxlength="50"
+        placeholder="Enter the meal name... (required)" [formControl]="mealNameControl" required fill="outline">
       </ion-input>
-    </ion-item>
+
+      <!-- Campo de Score -->
+      <ion-range label="Score" [formControl]="scoreControl" min="1" max="5" step="1" snaps="true" ticks="true"
+        [ngStyle]="{'--knob-background': getScoreColor(scoreControl.value)}">
+      </ion-range>
+    </div>
 
 
-    <ion-item lines="none">
-      <ion-input class="url" label="URL" fill="outline" maxlength="100" labelPlacement="floating"
-        placeholder="Link to the recipe... (optional)" [formControl]="urlControl">
-      </ion-input>
-    </ion-item>
+    <ion-input class="description" label="Description" fill="outline" maxlength="250" labelPlacement="floating"
+      placeholder="Add a short description... (optional)" [formControl]="descriptionControl">
+    </ion-input>
+
+
+    <ion-input type="url" class="url" label="URL" fill="outline" maxlength="100" labelPlacement="floating"
+      placeholder="Link to the recipe... (optional)" [formControl]="urlControl">
+    </ion-input>
+
 
 
     <div class="image-thumb-wrapper">
@@ -63,7 +53,7 @@
 
         <ion-button class="accept-button" expand="block" [disabled]="!mealNameControl.valid || !scoreControl.value"
           (click)="saveMeal()">
-          Save Meal
+          Save <br> Meal
         </ion-button>
 
       </div>

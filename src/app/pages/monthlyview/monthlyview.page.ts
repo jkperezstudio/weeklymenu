@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonDatetime } from '@ionic/angular/standalone';
+import { IonContent, IonDatetime } from '@ionic/angular/standalone';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
 import { ChangeDetectorRef } from '@angular/core';
@@ -11,9 +11,10 @@ import { filter } from 'rxjs/operators';
   selector: 'app-monthlyview',
   templateUrl: './monthlyview.page.html',
   styleUrls: ['./monthlyview.page.scss'],
+
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [IonDatetime, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, RouterModule]
+  imports: [IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]
 })
 export class MonthlyViewPage implements OnInit {
   @ViewChild('calendar', { static: false }) calendar!: IonDatetime;

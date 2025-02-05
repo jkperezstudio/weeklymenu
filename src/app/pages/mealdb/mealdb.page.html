@@ -1,13 +1,3 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-    <img class="icon-upper-bar" src="assets/sidebaricons/db.png" slot="start" width="32" height="32" />
-    <ion-title>Meal Database</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
@@ -27,7 +17,7 @@
         <ion-label>
           <h2>{{ capitalizeWords(meal.name) }}</h2>
           <p>
-            <span [style.color]="getScoreColor(meal.score)">•</span> {{ meal.score }}
+            <span class="score-color" [style.color]="getScoreColor(meal.score)">•</span> {{ meal.score }}
           </p>
         </ion-label>
       </ion-item>
