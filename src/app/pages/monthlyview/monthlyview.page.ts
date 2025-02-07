@@ -1,9 +1,11 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonDatetime, IonModal, IonCard, IonCardTitle } from '@ionic/angular/standalone';
+import { IonContent, IonDatetime } from '@ionic/angular/standalone';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
+import { FirestoreDayData } from '../../interfaces/meal.interface';
+import { Meal } from '../../interfaces/meal.interface';
 import { ChangeDetectorRef } from '@angular/core';
 import { filter } from 'rxjs/operators';
 
@@ -14,14 +16,14 @@ import { filter } from 'rxjs/operators';
 
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [IonCardTitle, IonCard, IonModal, IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]
+  imports: [IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]
 })
 export class MonthlyViewPage implements OnInit {
   @ViewChild('calendar', { static: false }) calendar!: IonDatetime;
 
   currentDay: string = '';
   isCalendarReady: boolean = false;
-  dayScores: { [key: string]: { color: string, isComplete: boolean } } = {};
+  dayScores: { [key: string]: { color: string; isComplete: boolean; hasDelivery?: boolean } } = {};
   initialDate: string;
   selectedDate: string = ''; // Almacena la fecha seleccionada inicialmente
 
@@ -38,12 +40,11 @@ export class MonthlyViewPage implements OnInit {
     this.selectedDate = ''; // Limpia la selección actual
     this.currentDay = ''; // Limpia el día actual también
 
-    // Suscribirse a los cambios de navegación
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         if (event.url.includes('monthlyview')) {
-          this.clearSelectedDay(); // Limpia la selección del día cuando se vuelve a la vista mensual
+          this.clearSelectedDay();
         }
       });
 
@@ -51,25 +52,90 @@ export class MonthlyViewPage implements OnInit {
 
     onSnapshot(scoresCollection, (snapshot) => {
       snapshot.forEach((doc) => {
-        const data = doc.data() as { year: number, month: number, day: number, color: string, isComplete: boolean };
+        const data = doc.data() as FirestoreDayData;
         const dateKey = `${data.year}-${data.month.toString().padStart(2, '0')}-${data.day.toString().padStart(2, '0')}`;
+
+        const hasDelivery = data.meals?.some((meal: Meal) => meal.hasDelivery === true) || false;
+
         this.dayScores[dateKey] = {
           color: data.color,
-          isComplete: data.isComplete // Incluimos isComplete en dayScores
+          isComplete: data.isComplete || false,
+          hasDelivery: hasDelivery // Guardamos si hay pedido
         };
+
+
       });
-
-      console.log('Colores actualizados desde Firebase:', this.dayScores);
-
-      // Establece el color inicial del día actual SOLO si no hay día seleccionado
-      const today = new Date();
-      this.applyActiveDayColor(today);
 
       this.isCalendarReady = true;
       this.cdr.detectChanges();
+
+      // 🔥 Aplicamos los estilos una vez que los datos han cargado
+      this.markDeliveryDays();
     });
 
   }
+
+  // 🔥 Método para marcar los días con delivery en el DOM de ion-datetime
+  markDeliveryDays() {
+    setTimeout(() => {
+      const datetimeElement = document.querySelector('ion-datetime');
+      if (!datetimeElement) {
+        console.log('❌ ion-datetime no encontrado');
+        return;
+      }
+
+      const shadowRoot = datetimeElement.shadowRoot;
+      if (!shadowRoot) {
+        console.log('❌ No se pudo acceder al Shadow DOM de ion-datetime');
+        return;
+      }
+
+      // 🔥 Inyectar CSS en el Shadow DOM
+      const styleTag = document.createElement("style");
+      styleTag.textContent = `
+    button[data-delivery="true"]::before {
+    content: "•";
+    color: #901050;
+    font-size: 30px;  /* Reducimos el tamaño para que no se desborde */
+    position: absolute;
+    bottom: -5px;  /* Bajamos más */
+    right: 5px;  /* Lo pegamos más a la esquina */
+    transform: none;
+    line-height: 1;  /* Evita que se mueva por el tamaño del botón */
+}
+
+`;
+
+
+      if (!shadowRoot.querySelector("style[data-injected='true']")) {
+        styleTag.setAttribute("data-injected", "true");
+        shadowRoot.appendChild(styleTag);
+      }
+
+      Object.keys(this.dayScores).forEach(dateKey => {
+        if (this.dayScores[dateKey]?.hasDelivery) {
+          const [year, month, day] = dateKey.split('-').map(Number);
+
+          const dayElement = shadowRoot.querySelector(
+            `button[data-day="${day}"][data-month="${month}"][data-year="${year}"]`
+          );
+
+          if (dayElement) {
+            dayElement.setAttribute('data-delivery', 'true');
+
+          } else {
+
+          }
+        }
+      });
+    }, 500);
+  }
+
+
+
+
+
+
 
   clearSelectedDay() {
     // Lógica para reiniciar la selección del día
@@ -90,7 +156,7 @@ export class MonthlyViewPage implements OnInit {
         return;
       }
 
-      let color = '#222222'; // Color neutro por defecto
+      let color = '#1e1e1e'; // Color neutro por defecto
       if (dayData && dayData.isComplete) {
         color = dayData.color; // Usar el color solo si está completo
       }
@@ -161,7 +227,7 @@ export class MonthlyViewPage implements OnInit {
     // Si no hay datos de ese día, usa un color neutro
     return {
       textColor: '#FFFFFF',
-      backgroundColor: '#222222',
+      backgroundColor: '#1e1e1e',
     };
   };
 

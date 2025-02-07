@@ -13,7 +13,7 @@ export interface Meal {
     notificationId?: number;
     reminder?: boolean;
     reminderTime?: string;
-    delivery?: boolean;
+    hasDelivery?: boolean;
     recipe?: string | null;
     url?: string | null;
     image?: string | null;
@@ -29,5 +29,6 @@ export interface FirestoreDayData extends DocumentData {
     score: number;
     color: string;
     isComplete?: boolean;
+    hasDelivery?: boolean;
 }
 

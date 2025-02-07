@@ -12,12 +12,12 @@ import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from './environments/environment';
 import { routes } from './app/app.routes';
 import { addIcons } from 'ionicons';
-import { imagesOutline, cameraOutline, close, add, trash } from 'ionicons/icons';
+import { imagesOutline, cameraOutline, close, add, trash, caretBackOutline, caretForwardOutline } from 'ionicons/icons';
 
 
 
 addIcons({
-  'images-outline': imagesOutline, cameraOutline, close, trash, add
+  'images-outline': imagesOutline, cameraOutline, close, trash, add, caretBackOutline, caretForwardOutline
 });
 
 bootstrapApplication(AppComponent, {

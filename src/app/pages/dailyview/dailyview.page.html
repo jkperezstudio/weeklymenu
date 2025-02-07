@@ -52,11 +52,11 @@
             <div class="swipe-footer">
                 <!-- Botones SIN la clase navigation-buttons -->
                 <ion-button (click)="navigateToDate(goToPreviousDay())">
-                    <ion-icon name="arrow-back"></ion-icon>
+                    <ion-icon name="caret-back-outline" size="large"></ion-icon>
                 </ion-button>
 
                 <ion-button (click)="navigateToDate(goToNextDay())">
-                    <ion-icon name="arrow-forward"></ion-icon>
+                    <ion-icon name="caret-forward-outline" size="large"></ion-icon>
                 </ion-button>
             </div>
         </ion-card>
@@ -143,7 +143,7 @@
 
                 <ion-item class="delivery" lines="none">
                     <ion-label>Delivery?</ion-label>
-                    <ion-toggle aria-label="Delivery Toggle" slot="end" [(ngModel)]="currentMeal.delivery">
+                    <ion-toggle aria-label="Delivery Toggle" slot="end" [(ngModel)]="currentMeal.hasDelivery">
                     </ion-toggle>
                 </ion-item>
 

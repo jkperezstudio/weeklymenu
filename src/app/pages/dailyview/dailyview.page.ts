@@ -7,7 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Firestore, collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import { DayCompleteModalComponent } from '../../day-complete-modal/day-complete-modal.component';
 import { addIcons } from 'ionicons';
-import { arrowBack, arrowForward, add, trash } from 'ionicons/icons';
+import { add, trash, caretBackOutline, caretForwardOutline } from 'ionicons/icons';
 import { NotificationsService } from '../../services/notifications.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
@@ -38,7 +38,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
     isSlidingItemOpen = false;
     isModalOpen = false;
-    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', reminder: false, delivery: false };
+    currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', reminder: false, hasDelivery: false };
     mealDoneControls: { [key: string]: FormControl } = {};
 
     public isTimePickerOpen = false;
@@ -63,7 +63,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         private notificationsService: NotificationsService,
         private cdr: ChangeDetectorRef
 
-    ) { addIcons({ arrowBack, arrowForward, add, trash }); }
+    ) { addIcons({ add, trash, caretBackOutline, caretForwardOutline }); }
 
 
     /**
@@ -247,7 +247,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 done: false,
                 mealtype: '',
                 reminder: false,
-                delivery: false,
+                hasDelivery: false,
                 alarms: []
 
             };
@@ -529,7 +529,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                         meal.score = 0;
                         meal.done = false;
                         meal.reminder = false;
-                        meal.delivery = false;
+                        meal.hasDelivery = false;
                         this.saveDayDataToFirebase();
                         console.log(`Content of "${meal.mealtype}" cleared.`);
                     }

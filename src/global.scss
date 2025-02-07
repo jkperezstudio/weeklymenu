@@ -194,7 +194,7 @@ ion-content {
 }
 
 ion-datetime {
-    background: #222222;
+
     position: absolute;
     top: 35%;
     padding-top: 5%;
@@ -223,6 +223,7 @@ ion-datetime::part(calendar-day) {
     width: 110% !important;
     border-radius: 15px !important;
     padding: 5px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 ion-datetime::part(day-highlighted),
