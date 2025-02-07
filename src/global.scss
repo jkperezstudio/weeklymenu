@@ -11,6 +11,8 @@
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
+@import '~@angular/material/prebuilt-themes/indigo-pink.css';
+
 
 /* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
@@ -94,11 +96,11 @@
         color: var(--ion-text-color) !important;
     }
 
-    /*
-    ion-datetime::part(calendar-day):hover {
-        background: #3a3a3a !important;
+    ion-datetime {
+        --padding-top: 10px;
     }
-*/
+
+
 
     /* Highlighted days */
     ion-datetime::part(day-highlighted),
@@ -125,9 +127,14 @@
 
     /* ========== COMPONENTES MATERIAL ========== */
     .mat-bottom-sheet-container {
-        background-color: #2d2d2d !important;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        background-color: #161616 !important;
         color: var(--ion-text-color) !important;
     }
+
 
     /* ========== ELEMENTOS NATIVOS ========== */
     /* Scrollbars */
@@ -169,10 +176,7 @@ ion-select::part(icon) {
     color: var(--ion-text-color);
 }
 
-/* Modal Backdrop */
-ion-modal::part(backdrop) {
-    background: rgba(0, 0, 0, 0.8);
-}
+
 
 /* Input Highlights */
 ion-input.ion-focused {
@@ -196,9 +200,9 @@ ion-datetime {
     padding-top: 5%;
     left: 50%;
     transform: translate(-50%, -50%);
-    border-radius: 16px;
+    border-radius: 25px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    height: 50%;
+    height: 45%;
     max-width: 400px;
     width: calc(100% - 32px);
     z-index: 1;

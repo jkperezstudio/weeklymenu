@@ -1,0 +1,223 @@
+/* mealdb.page.scss */
+
+/* Estilo general del contenido */
+ion-content {
+    --background: var(--ion-background-color);
+    /* Fondo oscuro */
+}
+
+/* Card principal */
+ion-card {
+    margin: 16px;
+    margin-top: 15%;
+    /* Espaciado alrededor del card */
+    border-radius: 25px;
+    /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    /* Sombra sutil */
+    background: #2a2a2a;
+    /* Fondo más claro para el card */
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    /* Alto limitado */
+}
+
+/* Cabecera del card */
+ion-card-header {
+    background: #901050;
+    /* Color personalizado para la cabecera */
+    border-top-left-radius: 16px;
+    /* Redondea las esquinas superiores */
+    border-top-right-radius: 16px;
+    padding-left: 16px;
+    /* Espaciado interno */
+}
+
+ion-card-title {
+    margin: 0;
+    flex: 1;
+    text-align: left;
+    color: white;
+
+}
+
+/* Contenedor con scroll */
+.scroll-container {
+    flex: 1;
+    /* Ocupa el espacio restante */
+    overflow-y: auto;
+    /* Habilita el scroll vertical */
+    padding: 16px;
+    /* Espaciado interno */
+}
+
+/* Lista de comidas */
+ion-list {
+    margin-bottom: 0;
+    background: transparent;
+    /* Quitamos el fondo predeterminado */
+}
+
+//------------------------------
+
+ion-item {
+    --background: #1e1e1e;
+    border-radius: 15px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón de eliminación (dentro del sliding) */
+ion-item-options {
+    ion-item-option {
+        --background: #e40d29;
+        /* Rojo oscuro para el botón de eliminar */
+        --color: #ffffff;
+        /* Texto blanco */
+
+        /* Intenta aplicar bordes redondeados */
+        border-radius: 15px;
+        /* Fuerza los bordes redondeados */
+        width: 60px;
+        /* Ancho del botón */
+        height: 60px;
+        /* Altura completa del elemento deslizante */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* Centra el ícono vertical y horizontalmente */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        margin: 5px;
+        /* Sombra sutil */
+        overflow: hidden;
+        /* Asegura que los bordes redondeados se respeten */
+    }
+
+    ion-icon {
+        font-size: 24px;
+        /* Tamaño del ícono */
+    }
+}
+
+/* Miniaturas de imágenes */
+ion-thumbnail img {
+    border-radius: 8px;
+    /* Bordes redondeados para las imágenes */
+    border: 1px solid #333;
+    /* Borde sutil */
+}
+
+/* Footer del card */
+ion-footer {
+    background: transparent;
+    /* Fondo transparente */
+    padding: 8px 16px;
+    /* Espaciado interno */
+    border-top: 1px solid #333;
+    /* Línea divisoria */
+}
+
+/* mealdb.page.scss */
+
+/* Footer del card */
+ion-footer {
+    background: transparent;
+    /* Fondo transparente */
+    padding: 8px 0;
+    /* Espaciado interno */
+    border-top: none;
+    /* Elimina la línea divisoria */
+}
+
+/* Barra de búsqueda */
+ion-searchbar {
+    --background: #121212;
+    /* Fondo oscuro para el buscador */
+    --color: #ffffff;
+    /* Color del texto */
+    --placeholder-color: #888;
+    /* Color del placeholder */
+    --icon-color: #888;
+    /* Color del ícono de búsqueda */
+    --border-radius: 24px;
+    /* Bordes más redondeados */
+    width: calc(100% - 32px);
+    /* Ajusta el ancho para que no se desborde */
+    max-width: 100%;
+    /* Evita que el buscador sea más ancho que el contenedor */
+    margin: 0 auto;
+    /* Centra el buscador horizontalmente */
+
+}
+
+/* mealdb.page.scss */
+
+/* Puntuación (punto) */
+/* mealdb.page.scss */
+
+/* Puntuación (punto) */
+.score-dot {
+    display: inline-block;
+    width: 16px;
+    /* Tamaño del punto */
+    height: 16px;
+    /* Tamaño del punto */
+    background-color: currentColor;
+    /* Usa el color definido por [style.color] */
+    border-radius: 50%;
+    /* Forma circular */
+    margin-left: 8px;
+    /* Espaciado desde la imagen */
+    margin-right: 8px;
+    /* Espaciado hacia el nombre */
+    vertical-align: middle;
+    /* Alineación vertical */
+}
+
+/* Elementos individuales */
+ion-item {
+    --background: #1e1e1e;
+    /* Fondo oscuro para cada elemento */
+    --color: #ffffff;
+    /* Texto blanco */
+    --border-radius: 12px;
+    /* Bordes redondeados */
+    --inner-padding-end: 16px;
+    /* Espaciado interno */
+    --padding-start: 16px;
+    /* Espaciado interno */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    /* Sombra sutil */
+
+}
+
+/* Miniaturas de imágenes */
+ion-thumbnail img {
+    border-radius: 8px;
+    /* Bordes redondeados para las imágenes */
+    border: 1px solid #333;
+    /* Borde sutil */
+}
+
+ion-fab {
+    position: relative;
+    /* Elimina la posición absoluta */
+    margin-left: auto;
+    /* Empuja el botón a la derecha */
+
+
+    ion-fab-button {
+        --background: #ffffff;
+        --background-activated: var(--ion-color-primary-shade);
+        --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        --border-radius: 50%;
+        width: 40px;
+        height: 40px;
+
+        ion-icon {
+            font-size: 2rem;
+            color: #121212;
+        }
+    }
+}

@@ -11,6 +11,14 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { environment } from './environments/environment';
 import { routes } from './app/app.routes';
+import { addIcons } from 'ionicons';
+import { imagesOutline, cameraOutline, close, add, trash } from 'ionicons/icons';
+
+
+
+addIcons({
+  'images-outline': imagesOutline, cameraOutline, close, trash, add
+});
 
 bootstrapApplication(AppComponent, {
   providers: [

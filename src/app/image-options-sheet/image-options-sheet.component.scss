@@ -14,16 +14,19 @@
         list-style: none;
         padding: 0;
 
+
         .option-item {
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 12px;
-            margin: 8px 0;
+            margin: 8px auto; // Cambiado para centrar
+            width: 150px; // O el ancho que quieras
             font-size: 1rem;
+            font-weight: bold;
             color: #fff;
             background-color: #444;
-            border-radius: 8px;
+            border-radius: 25px;
             cursor: pointer;
             transition: background-color 0.2s;
 
@@ -37,7 +40,7 @@
             }
 
             &.cancel {
-                background-color: transparent;
+                background-color: #222;
                 color: #ff4d4d;
                 font-weight: bold;
 
@@ -46,5 +49,6 @@
                 }
             }
         }
+
     }
 }

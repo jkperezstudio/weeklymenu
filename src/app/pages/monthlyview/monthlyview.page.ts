@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonDatetime } from '@ionic/angular/standalone';
+import { IonContent, IonDatetime, IonModal, IonCard, IonCardTitle } from '@ionic/angular/standalone';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
 import { ChangeDetectorRef } from '@angular/core';
@@ -14,7 +14,7 @@ import { filter } from 'rxjs/operators';
 
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]
+  imports: [IonCardTitle, IonCard, IonModal, IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]
 })
 export class MonthlyViewPage implements OnInit {
   @ViewChild('calendar', { static: false }) calendar!: IonDatetime;
@@ -153,7 +153,7 @@ export class MonthlyViewPage implements OnInit {
         // Día parcial
         return {
           textColor: '#141218',
-          backgroundColor: '#3f384c',
+          backgroundColor: '#616e7e',
         };
       }
     }

@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { MatBottomSheet } from '@angular/material/bottom-sheet';
+import { MatBottomSheet, MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { ImageOptionsSheetComponent } from '../../image-options-sheet/image-options-sheet.component';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, doc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 
@@ -14,10 +15,10 @@ import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
   templateUrl: './mealform.page.html',
   styleUrls: ['./mealform.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, MatBottomSheetModule]
 })
-export class MealformPage {
-
+export class MealformPage implements OnInit {
+  mealId: string | null = null;
   selectedImage: string = 'assets/placeholder-image.png';
   mealNameControl = new FormControl('', { nonNullable: true });
   scoreControl = new FormControl(null);
@@ -26,28 +27,95 @@ export class MealformPage {
   thumbUpSelected: boolean = false;
   thumbDownSelected: boolean = false;
   isLoading: boolean = false;
+  allMeals: any[] = [];
+  suggestions: any[] = [];
 
-  toggleThumb(thumb: string) {
-    if (thumb === 'up') {
-      this.thumbUpSelected = !this.thumbUpSelected;
-      if (this.thumbUpSelected) {
-        this.thumbDownSelected = false; // Desactiva thumb-down
-      }
-    } else if (thumb === 'down') {
-      this.thumbDownSelected = !this.thumbDownSelected;
-      if (this.thumbDownSelected) {
-        this.thumbUpSelected = false; // Desactiva thumb-up
-      }
+
+  constructor(
+    private route: ActivatedRoute,
+    private bottomSheet: MatBottomSheet,
+    private firestore: Firestore
+  ) { }
+
+  async ngOnInit() {
+    this.mealId = this.route.snapshot.paramMap.get('id');
+    await this.loadAllMeals(); // Cargar todas las comidas al inicializar
+    if (this.mealId) {
+      await this.loadMeal();
     }
+  }
+
+  async loadAllMeals() {
+    try {
+      const mealsCollection = collection(this.firestore, 'meals');
+      const querySnapshot = await getDocs(mealsCollection);
+      this.allMeals = querySnapshot.docs.map(doc => doc.data());
+    } catch (error) {
+      console.error('Error loading meals:', error);
+    }
+  }
+
+  filterSuggestions() {
+    const query = this.mealNameControl.value?.trim().toLowerCase() || '';
+    if (!query) {
+      this.suggestions = [];
+      return;
+    }
+    this.suggestions = this.allMeals
+      .filter(meal => meal.name.toLowerCase().startsWith(query))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  selectSuggestion(suggestion: any) {
+    this.mealNameControl.setValue(suggestion.name);
+    this.scoreControl.setValue(suggestion.score);
+    this.descriptionControl.setValue(suggestion.description || '');
+    this.urlControl.setValue(suggestion.url || '');
+    this.selectedImage = suggestion.image || 'assets/placeholder-image.png';
+    this.thumbUpSelected = suggestion.thumbsUp || false;
+    this.thumbDownSelected = suggestion.thumbsDown || false;
+
+    this.suggestions = []; // Ocultar la lista de sugerencias tras la selección
   }
 
 
 
-  constructor(private bottomSheet: MatBottomSheet, private firestore: Firestore) { }
+  async loadMeal() {
+    this.isLoading = true;
+    try {
+      const mealDocRef = doc(this.firestore, `meals/${this.mealId}`);
+      const mealDocSnap = await getDoc(mealDocRef);
+      if (mealDocSnap.exists()) {
+        const mealData = mealDocSnap.data() as any;
+        this.mealNameControl.setValue(mealData.name);
+        this.scoreControl.setValue(mealData.score);
+        this.descriptionControl.setValue(mealData.description || '');
+        this.urlControl.setValue(mealData.url || '');
+        this.selectedImage = mealData.image || 'assets/placeholder-image.png';
+        this.thumbUpSelected = mealData.thumbsUp;
+        this.thumbDownSelected = mealData.thumbsDown;
+      } else {
+        console.error('Meal not found');
+      }
+    } catch (error) {
+      console.error('Error loading meal:', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  toggleThumb(thumb: string) {
+    if (thumb === 'up') {
+      this.thumbUpSelected = !this.thumbUpSelected;
+      if (this.thumbUpSelected) this.thumbDownSelected = false;
+    } else if (thumb === 'down') {
+      this.thumbDownSelected = !this.thumbDownSelected;
+      if (this.thumbDownSelected) this.thumbUpSelected = false;
+    }
+  }
 
   openImageOptions() {
     const bottomSheetRef = this.bottomSheet.open(ImageOptionsSheetComponent);
-
     bottomSheetRef.afterDismissed().subscribe((result) => {
       if (result === 'gallery') {
         this.pickImageFromGallery();
@@ -61,15 +129,14 @@ export class MealformPage {
     try {
       const image = await Camera.getPhoto({
         source: CameraSource.Photos,
-        resultType: CameraResultType.DataUrl, // Devuelve la imagen en formato base64
+        resultType: CameraResultType.DataUrl,
         quality: 90,
       });
-
       if (image.dataUrl) {
-        this.selectedImage = image.dataUrl; // Actualizamos solo si se seleccionó una imagen
+        this.selectedImage = image.dataUrl;
       }
     } catch (error) {
-      if (error instanceof Error && error.message.includes('User cancelled photos app')) {
+      if (error instanceof Error && error.message.includes('User cancelled')) {
         console.log('User canceled image selection.');
       } else {
         console.error('Error selecting image:', error);
@@ -81,24 +148,16 @@ export class MealformPage {
     try {
       const image = await Camera.getPhoto({
         quality: 90,
-        source: CameraSource.Camera, // Abre la cámara
-        resultType: CameraResultType.Uri // Devuelve una URI accesible
+        source: CameraSource.Camera,
+        resultType: CameraResultType.Uri
       });
-
       if (image.webPath) {
-        this.selectedImage = image.webPath; // Muestra la imagen en la vista
-        console.log('Photo webPath:', image.webPath);
-
-        // Obtén el contenido de la imagen como blob
+        // Convertir la imagen a base64
         const response = await fetch(image.webPath);
         const blob = await response.blob();
-
-        // Convierte el blob a base64
         const reader = new FileReader();
         reader.onloadend = () => {
-          const base64data = reader.result as string;
-          this.selectedImage = base64data; // Almacena la imagen en base64 para subirla
-          console.log('Base64 image:', base64data);
+          this.selectedImage = reader.result as string;
         };
         reader.readAsDataURL(blob);
       }
@@ -108,9 +167,7 @@ export class MealformPage {
   }
 
   async saveMeal() {
-
     this.isLoading = true;
-
     const mealName = this.mealNameControl.value;
     const score = this.scoreControl.value;
     const description = this.descriptionControl.value;
@@ -123,108 +180,77 @@ export class MealformPage {
     }
 
     let imageUrl = '';
-    if (this.selectedImage && this.selectedImage.startsWith('data:image')) { // Verificamos si es una imagen válida
+    if (this.selectedImage && this.selectedImage.startsWith('data:image')) {
       try {
-        imageUrl = await this.uploadImage(this.selectedImage); // Sube la imagen y obtiene la URL
+        imageUrl = await this.uploadImage(this.selectedImage);
       } catch (error) {
         console.error('Error uploading image:', error);
         this.isLoading = false;
         return;
       }
-    } else {
-      console.log('No valid image to upload.'); // Mensaje opcional
     }
-
 
     const mealData = {
       name: mealName.trim(),
       score,
-      description: description?.trim() || '',
-      url: url?.trim() || '',
+      description: description.trim() || '',
+      url: url.trim() || '',
       thumbsUp: this.thumbUpSelected,
       thumbsDown: this.thumbDownSelected,
-      image: imageUrl, // Incluye la URL de la imagen en Firestore
+      image: imageUrl
     };
 
     try {
-      const mealsCollection = collection(this.firestore, 'meals');
-      await addDoc(mealsCollection, mealData);
-      console.log('Meal saved successfully:', mealData);
-      this.resetForm();
+      if (this.mealId) {
+        // Editando meal existente
+        const mealDocRef = doc(this.firestore, `meals/${this.mealId}`);
+        await updateDoc(mealDocRef, mealData);
+        console.log('Meal updated successfully:', mealData);
+      } else {
+        // Creando nueva meal
+        const mealsCollection = collection(this.firestore, 'meals');
+        await addDoc(mealsCollection, mealData);
+        console.log('Meal saved successfully:', mealData);
+        this.resetForm();
+      }
     } catch (error) {
       console.error('Error saving meal:', error);
     } finally {
-      this.isLoading = false; // Siempre desactiva el spinner al final
+      this.isLoading = false;
     }
-  }
-
-
-
-  getScoreColor(score: number | null): string {
-    if (score === null) return '#ccc'; // Gris por defecto
-    switch (score) {
-      case 1: return '#ff4d4d'; // Rojo
-      case 2: return '#ffa64d'; // Naranja
-      case 3: return '#ffd24d'; // Amarillo
-      case 4: return '#b3ff4d'; // Verde claro
-      case 5: return '#4dff4d'; // Verde fuerte
-      default: return '#ccc';    // Gris
-    }
-  }
-
-  isValidUrl(url: string): boolean {
-    const pattern = new RegExp('^(https?:\\/\\/)?' + // Protocolo
-      '((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|' + // Dominio
-      '((\\d{1,3}\\.){3}\\d{1,3}))' + // IP (v4) dirección
-      '(\\:\\d+)?(\\/[-a-zA-Z\\d%_.~+]*)*' + // Ruta
-      '(\\?[;&a-zA-Z\\d%_.~+=-]*)?' + // Query string
-      '(\\#[-a-zA-Z\\d_]*)?$', 'i'); // Fragmento
-    return !!pattern.test(url);
-  }
-
-
-
-  onThumbsUp() {
-    console.log('Thumbs up clicked!');
-  }
-
-  onThumbsDown() {
-    console.log('Thumbs down clicked!');
   }
 
   async uploadImage(imageBase64: string): Promise<string> {
-    console.log('Uploading image:', imageBase64); // Depuración
     const storage = getStorage();
     const storageRef = ref(storage, `meals/${new Date().getTime()}.jpg`);
-
     try {
-      if (!imageBase64.startsWith('data:image')) {
-        throw new Error('Invalid image format');
-      }
       await uploadString(storageRef, imageBase64, 'data_url');
-      const downloadURL = await getDownloadURL(storageRef);
-      return downloadURL;
+      return await getDownloadURL(storageRef);
     } catch (error) {
       console.error('Error uploading image:', error);
       throw error;
     }
   }
 
-
-
   resetForm() {
     this.mealNameControl.reset();
-    this.scoreControl.setValue(null); // Restablece el score
+    this.scoreControl.setValue(null);
     this.descriptionControl.reset();
     this.urlControl.reset();
     this.thumbUpSelected = false;
     this.thumbDownSelected = false;
-    this.selectedImage = 'assets/placeholder-image.png'; // Restablece la imagen al placeholder
+    this.selectedImage = 'assets/placeholder-image.png';
   }
 
-
-
-
+  getScoreColor(score: number | null): string {
+    if (score === null) return '#ccc';
+    switch (score) {
+      case 1: return '#ff4d4d';
+      case 2: return '#ffa64d';
+      case 3: return '#ffd24d';
+      case 4: return '#b3ff4d';
+      case 5: return '#4dff4d';
+      default: return '#ccc';
+    }
+  }
 }
-
-

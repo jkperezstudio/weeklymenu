@@ -17,16 +17,28 @@
     <!-- Campo de Nombre y Score -->
 
     <div class="name-score-wrapper">
-      <!-- Campo de Name -->
-      <ion-input class="name" label="Name" labelPlacement="floating" maxlength="50"
-        placeholder="Enter the meal name... (required)" [formControl]="mealNameControl" required fill="outline">
-      </ion-input>
+      <!-- Contenedor específico para Name y su lista -->
+      <div class="name-container">
+        <ion-input #nameInput class="name" label="Name" labelPlacement="floating" maxlength="50"
+          placeholder="Enter the meal name... (required)" [formControl]="mealNameControl" required fill="outline"
+          (ionInput)="filterSuggestions()">
+        </ion-input>
+
+        <!-- Lista de sugerencias (ahora tiene una referencia #suggestionList) -->
+        <ion-list #suggestionList lines="none" *ngIf="suggestions.length > 0" class="suggestion-list">
+          <ion-item button *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
+            {{ suggestion.name }}
+          </ion-item>
+        </ion-list>
+      </div>
 
       <!-- Campo de Score -->
       <ion-range label="Score" [formControl]="scoreControl" min="1" max="5" step="1" snaps="true" ticks="true"
         [ngStyle]="{'--knob-background': getScoreColor(scoreControl.value)}">
       </ion-range>
     </div>
+
+
 
 
     <ion-input class="description" label="Description" fill="outline" maxlength="250" labelPlacement="floating"
@@ -37,7 +49,6 @@
     <ion-input type="url" class="url" label="URL" fill="outline" maxlength="100" labelPlacement="floating"
       placeholder="Link to the recipe... (optional)" [formControl]="urlControl">
     </ion-input>
-
 
 
     <div class="image-thumb-wrapper">
@@ -52,9 +63,10 @@
         <div class="thumb thumb-down" [class.selected]="thumbDownSelected" (click)="toggleThumb('down')"></div>
 
         <ion-button class="accept-button" expand="block" [disabled]="!mealNameControl.valid || !scoreControl.value"
-          (click)="saveMeal()">
-          Save <br> Meal
+          (click)="saveMeal()" [innerHTML]="mealId ? 'EDIT<br>MEAL' : 'SAVE<br>MEAL'">
         </ion-button>
+
+
 
       </div>
     </div>

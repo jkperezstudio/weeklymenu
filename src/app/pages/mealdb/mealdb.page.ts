@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonList, IonItemSliding, IonItem, IonLabel, IonItemOptions, IonItemOption, IonIcon, IonThumbnail, IonButtons, IonMenuButton, IonSearchbar } from '@ionic/angular/standalone';
+import { IonContent, IonHeader, IonTitle, IonToolbar, IonList, IonItemSliding, IonItem, IonLabel, IonItemOptions, IonItemOption, IonIcon, IonThumbnail, IonSearchbar, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonFooter, IonFab, IonFabButton } from '@ionic/angular/standalone';
 import { Meal } from 'src/app/interfaces/meal.interface';
 import { Firestore, collection, deleteDoc, doc, getDocs } from '@angular/fire/firestore';
 
@@ -11,7 +11,7 @@ import { Firestore, collection, deleteDoc, doc, getDocs } from '@angular/fire/fi
   templateUrl: './mealdb.page.html',
   styleUrls: ['./mealdb.page.scss'],
   standalone: true,
-  imports: [IonButtons, IonIcon, IonItemOption, IonItemOptions, IonLabel, IonItem, IonItemSliding, IonList, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonThumbnail, IonMenuButton, ReactiveFormsModule, IonSearchbar]
+  imports: [IonFabButton, IonFab, IonFooter, IonCardTitle, IonCardHeader, IonCard, IonIcon, IonItemOption, IonItemOptions, IonLabel, IonItem, IonItemSliding, IonList, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonThumbnail, ReactiveFormsModule, IonSearchbar]
 })
 export class MealdbPage implements OnInit {
   meals: Meal[] = [];
@@ -27,10 +27,18 @@ export class MealdbPage implements OnInit {
   async fetchMeals() {
     const mealsCollection = collection(this.firestore, 'meals');
     const mealsSnapshot = await getDocs(mealsCollection);
-    this.meals = mealsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Meal[];
+
+    // Mapea los datos y los ordena alfabéticamente por el nombre
+    this.meals = mealsSnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Meal[];
+
+    // Ordena las comidas alfabéticamente por el nombre
+    this.meals.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Asigna las comidas ordenadas a filteredMeals
     this.filteredMeals = [...this.meals];
   }
 
@@ -40,8 +48,6 @@ export class MealdbPage implements OnInit {
       meal.name.toLowerCase().includes(query)
     );
   }
-
-
 
   getScoreColor(score: number | null): string {
     if (score === null) return '#ccc';
@@ -69,13 +75,7 @@ export class MealdbPage implements OnInit {
     this.router.navigate(['/mealform', meal.id]);
   }
 
-
-
   capitalizeWords(str: string): string {
-    return str.replace(/\b\w/g, (c) => c.toUpperCase());
+    return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
   }
-
-
 }
-
-

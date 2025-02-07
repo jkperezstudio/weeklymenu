@@ -1,3 +1,57 @@
+.name-score-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: relative; // Permite que elementos internos tengan posición absoluta relativa a este contenedor
+}
+
+.name-container {
+    position: relative; // Permite posicionar la lista de sugerencias solo respecto al input Name
+    width: 100%;
+}
+
+.name {
+    width: 100%; // Asegura que el input ocupe el mismo ancho que su contenedor
+    z-index: 10; // Asegura que el input esté sobre la lista
+}
+
+.suggestion-list {
+    position: absolute;
+    left: 50%; // Mueve el borde izquierdo al centro del contenedor
+    transform: translateX(-50%); // Centra completamente la lista
+    width: 90%; // Un poco más estrecho si lo necesitas
+    max-height: 200px;
+    overflow-y: auto;
+    background: #1e1e1e;
+    border: 2px solid #4d4d4d; // Borde más grueso
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 100; // Asegura que la lista esté sobre otros elementos
+}
+
+
+.suggestion-list ion-item {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --min-height: 48px;
+    font-size: 14px;
+    color: white;
+    background: #2a2a2a;
+
+    &:hover {
+        background-color: #3a3a3a;
+    }
+}
+
+/* Ajustamos el ion-range para que no quede aplastado */
+ion-range {
+    width: 90%;
+
+}
+
+
+
 ion-content {
     --overflow: scroll;
     display: flex;
@@ -6,8 +60,9 @@ ion-content {
 }
 
 ion-card {
+    background: #2a2a2a;
     margin-top: 20px;
-    height: 85.6%;
+    height: 90hv;
     width: 90%;
     justify-self: center;
     margin-top: 10%;
@@ -24,8 +79,6 @@ ion-card-header {
 
 }
 
-
-
 .mealformtitle {
     size: 22px;
     color: #ffffff;
@@ -37,7 +90,7 @@ ion-card-header {
 .name {
     display: block;
     margin: auto;
-
+    --background: #1e1e1e;
     width: 90%;
     margin-top: 5%;
     margin-bottom: 2%;
@@ -108,6 +161,7 @@ ion-input.description {
     height: 100px;
     margin-top: 2%;
     margin-bottom: 2%;
+    --background: #1e1e1e;
     --border-radius: 10px;
     --border-width: 2px;
 }
@@ -118,6 +172,7 @@ ion-input.url {
     width: 90%;
     margin-top: 2%;
     margin-bottom: 2%;
+    --background: #1e1e1e;
     --border-radius: 10px;
     --border-width: 2px;
 }
@@ -126,8 +181,8 @@ ion-input.url {
     width: 90%;
     height: 320px;
     display: flex;
+
     flex-direction: row;
-    /* Imagen y thumbs en línea */
     justify-self: center;
     justify-content: space-between;
     align-items: center;
@@ -138,8 +193,9 @@ ion-input.url {
 .image-placeholder-wrapper {
     width: 70%;
     height: 90%;
+
     border-radius: 20px;
-    background-color: #1c1c1c;
+    background-color: #1e1e1e;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -147,8 +203,9 @@ ion-input.url {
 }
 
 .image-placeholder {
-    width: 80%; // Ocupar todo el ancho del contenedor
-    height: 80%; // Ocupar todo el alto del contenedor
+
+    width: 90%; // Ocupar todo el ancho del contenedor
+    height: 93%; // Ocupar todo el alto del contenedor
     object-fit: cover; // Llenar el contenedor sin deformar la imagen
     border-radius: 16px;
 }

@@ -59,8 +59,11 @@ ion-checkbox::part(container) {
     color: grey;
 }
 
-ion-card-header {
+ion-card {
+    background: #2a2a2a;
+}
 
+ion-card-header {
     background-color: #901050;
 }
 
@@ -140,15 +143,14 @@ ion-range::part(tick) {
 ion-modal {
     --height: 380px;
     --width: 90%;
+    background: #7e7e7e7e;
     --border-radius: 25px;
     --box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+
 }
 
-/* Color del fondo semitransparente detrás del modal */
-ion-modal::part(backdrop) {
-    background: rgba(108, 108, 108, 0.5);
-    opacity: 1;
-}
+
 
 /* Contenedor principal del contenido */
 .modal-container {
@@ -201,11 +203,67 @@ ion-modal::part(backdrop) {
     min-width: 100px;
 }
 
+//------------------------------
+
+
 ion-item {
     --background: transparent;
-    /* Para que sea transparente */
-    --ion-background-color: none;
-    /* Según la configuración de Ionic */
+
+}
+
+
+
+.mealReady {
+    --background: #1e1e1e;
+    margin-bottom: 5px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.mealEmpty {
+    --background: #1e1e1e;
+    margin: 1px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+ion-item-options {
+
+    ion-item-option {
+        --background: #e40d29;
+        --color: #ffffff;
+
+        /* Dimensiones correctas */
+        width: 60px;
+        /* Ancho deseado */
+        height: 60px;
+        /* Ocupa toda la altura del contenedor padre */
+
+        /* Centrado verdadero */
+        display: flex;
+        align-items: center;
+        /* Centrado vertical */
+        justify-content: center;
+        /* Centrado horizontal */
+
+        /* Bordes redondeados */
+        border-radius: 15px;
+        overflow: hidden;
+
+        /* Sombra */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        margin: 5px;
+        /* Espacio para que se vea la sombra */
+    }
+
+
+}
+
+ion-icon {
+    font-size: 24px;
+    margin: 0;
+    /* Asegurar que no tenga márgenes extraños */
 }
 
 .custom-alert .alert-wrapper {
@@ -241,11 +299,6 @@ ion-item {
 }
 
 
-
-ion-item-sliding {
-    z-index: 1;
-    /* Asegura que está detrás del header */
-}
 
 /* Lista de comidas con scroll */
 .meals-content {
@@ -300,6 +353,7 @@ ion-item-sliding {
         width: 80%; // Ancho relativo al contenedor
         max-width: 300px; // Ancho máximo opcional para pantallas grandes
         --border-radius: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         margin: 0 auto; // Redundancia para navegadores antiguos
         transition: transform 0.2s ease;
 
