@@ -237,27 +237,25 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
 
-    openMealForm(meal: Meal) {
+    openMealForm(meal?: Meal) {
         this.currentMeal = meal
-            ? { ...meal, done: false }
+            ? { ...meal }
             : {
                 id: '',
                 name: '',
                 score: 0,
                 done: false,
-                mealtype: '',
+                mealtype: '', // Se seleccionará en el modal
                 reminder: false,
-                hasDelivery: false,
-                alarms: []
-
+                hasDelivery: false
             };
+
         this.isModalOpen = true;
+        this.cdr.detectChanges(); // Forzar actualización de la UI
 
-        // Fuerza la detección de cambios para actualizar la UI
-        this.cdr.detectChanges(); // <-- Añade esta línea
-
-        console.log('Modal debería abrirse ahora');
+        console.log('Opening meal form:', this.currentMeal);
     }
+
 
     closeModal() {
         this.isModalOpen = false;
@@ -316,41 +314,45 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         });
     }
 
-    async saveMeal() {
+    saveMeal() {
         console.log('Saving meal:', this.currentMeal);
 
-        if (!this.currentMeal.name || !this.currentMeal.score) {
-            console.error('Meal name and score are required');
+        // Validación: No guardar si falta algún dato obligatorio
+        if (!this.currentMeal.name || !this.currentMeal.score || !this.currentMeal.mealtype) {
+            console.error('Meal name, score, and meal type are required.');
             return;
         }
 
+        // Si la comida ya existe, la actualizamos
         if (this.currentMeal.id) {
             const index = this.meals.findIndex(m => m.id === this.currentMeal.id);
             if (index !== -1) {
                 this.meals[index] = { ...this.currentMeal };
             }
         } else {
+            // Crear una nueva comida y asignarle un ID único
             const newMeal: Meal = {
                 ...this.currentMeal,
                 id: (this.meals.length + 1).toString(),
-                mealtype: this.currentMeal.mealtype || 'Custom'
+                mealtype: this.currentMeal.mealtype
             };
             this.meals.push(newMeal);
         }
 
+        // Verificar si la comida ya está en la base de datos global
         const mealExists = this.allMealData.some(
             meal => meal.name.toLowerCase() === this.currentMeal.name.toLowerCase()
         );
+
         if (!mealExists) {
-            const userWantsToAdd = await this.askToAddMealToDatabase();
-            if (!userWantsToAdd) {
-                console.log('Meal not added to the database.');
-            }
+            this.askToAddMealToDatabase();
         }
 
+        // Cerrar el modal y guardar en Firebase
         this.closeModal();
         this.saveDayDataToFirebase();
     }
+
 
     async addMealToDatabase() {
         try {
@@ -373,7 +375,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     deleteMeal(meal: Meal) {
         this.alertController.create({
             header: 'Delete Meal',
-            message: `Are you sure you want to delete "${meal.name}" from today?`,
+            message: `Are you sure you want to delete this meal slot?`,
             buttons: [
                 {
                     text: 'Cancel',
@@ -388,12 +390,13 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                     handler: () => {
                         this.meals = this.meals.filter(m => m.id !== meal.id);
                         this.saveDayDataToFirebase();
-                        console.log(`Meal "${meal.name}" deleted.`);
+                        console.log(`Meal slot deleted.`);
                     }
                 }
             ]
         }).then(alert => alert.present());
     }
+
 
     editMeal(meal: Meal) {
         console.log('Editando comida existente:', meal);

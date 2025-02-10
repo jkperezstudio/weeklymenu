@@ -125,11 +125,6 @@ ion-modal ion-toolbar {
     --background: #901050;
 }
 
-ion-modal ion-toolbar ion-title {
-
-    color: black;
-    /* Cambia el color del texto del título */
-}
 
 .timePickerModal {
     height: 200px;
@@ -141,7 +136,7 @@ ion-range::part(tick) {
 }
 
 ion-modal {
-    --height: 380px;
+    --height: 440px;
     --width: 90%;
     background: #7e7e7e7e;
     --border-radius: 25px;
@@ -155,6 +150,17 @@ ion-modal {
 /* Contenedor principal del contenido */
 .modal-container {
     padding: 1rem;
+}
+
+.select-meal-type {
+    display: block; // Necesario para que margin auto funcione bien
+    margin: auto;
+    margin-top: 5%;
+    width: 80%;
+    padding-left: 10px;
+    padding-right: 10px;
+    --border-radius: 10px;
+    --border-width: 2px;
 }
 
 .name {
@@ -182,6 +188,7 @@ ion-modal {
 }
 
 .score {
+    margin-top: 10px;
     padding-left: 16px;
 }
 
@@ -196,14 +203,27 @@ ion-modal {
 }
 
 .savebutton {
-    display: block;
-    --border-radius: 20px;
-    margin: 2rem auto 0;
-    width: 80px;
-    min-width: 100px;
+    padding: 0;
+    margin: 0 auto;
+    width: 50%;
+    height: 42px;
+    font-weight: bold;
+    --color: white;
+    --border-radius: 25px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-//------------------------------
+.savebutton:disabled {
+    background-color: var(--ion-color-medium);
+    color: white;
+    opacity: 0.6;
+    border: none;
+    box-shadow: none;
+}
+
 
 
 ion-item {
@@ -302,10 +322,9 @@ ion-icon {
 
 /* Lista de comidas con scroll */
 .meals-content {
-    height: 55vh; // Reducimos la altura (ajusta este valor)
     overflow-y: auto;
     touch-action: auto;
-    padding: 16px;
+    padding: 10px 16px 10px 16px;
     flex: 1; // Mantenemos esto para el layout flexible
 }
 
@@ -319,11 +338,10 @@ ion-icon {
     ion-button {
         --background: #901050;
         --border-radius: 50%;
-        --padding-start: 0;
-        --padding-end: 0;
+
         color: #ffffff;
-        width: 55px;
-        height: 55px;
+        width: 56px;
+        height: 56px;
         min-width: 50px;
         min-height: 50px;
         transition: transform 0.2s ease;
@@ -333,13 +351,38 @@ ion-icon {
         }
 
 
-        ion-icon {
-            font-size: 24px; // Tamaño del icono
-        }
+
     }
 }
 
-.buttons-container {
+.savebutton {
+    padding: 0;
+    margin: 0 auto;
+    width: 50%;
+    height: 42px;
+    font-weight: bold;
+    --ion-color-primary-contrast: #ffffff;
+    --border-radius: 25px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:active {
+        transform: scale(0.9);
+    }
+}
+
+.savebutton:disabled {
+    background-color: var(--ion-color-medium);
+    color: white;
+    opacity: 0.6;
+    border: none;
+    box-shadow: none;
+}
+
+
+.finalize-button {
     display: flex; // Convertir en contenedor flex
     justify-content: center; // Centrar horizontalmente
     align-items: center; // Centrar verticalmente
@@ -384,4 +427,11 @@ ion-fab {
             color: #121212;
         }
     }
+}
+
+.no-meals-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--ion-color-medium);
+    margin-top: 20px;
 }
