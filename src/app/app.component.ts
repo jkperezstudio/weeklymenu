@@ -28,15 +28,8 @@ export class AppComponent {
 
   constructor(private cdr: ChangeDetectorRef) {
     addIcons({ mailOutline, mailSharp, paperPlaneOutline, paperPlaneSharp, heartOutline, heartSharp, archiveOutline, archiveSharp, trashOutline, trashSharp, warningOutline, warningSharp, bookmarkOutline, bookmarkSharp });
-    //this.showSplash();
-  }
-
-  async showSplash() {
-    SplashScreen.show({
-      autoHide: true,
-      showDuration: 3000,
-    });
 
   }
+
 
 }

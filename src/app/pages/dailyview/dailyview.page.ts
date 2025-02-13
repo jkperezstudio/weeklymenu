@@ -1,5 +1,6 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, QueryList } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
 import { AlertController, ModalController, GestureController, Gesture, IonicModule } from '@ionic/angular';
@@ -32,6 +33,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     @ViewChild('suggestionsContainer') suggestionsContainer!: ElementRef;;
 
     private gesture!: Gesture;
+
 
 
     day: number = 0;
@@ -71,6 +73,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         private notificationsService: NotificationsService,
         private cdr: ChangeDetectorRef,
         private platform: Platform,
+        private router: Router
 
     ) { addIcons({ add, trash, caretBackOutline, caretForwardOutline }); }
 
@@ -756,6 +759,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
     onTimePickerDismiss() {
         this.isTimePickerOpen = false;
+        this.currentMeal.reminder = false;
     }
 
     confirmTimePicker() {
@@ -782,6 +786,10 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 alert("Error al programar la alarma: " + err.message);
                 this.currentMeal.reminder = false;
             });
+    }
+
+    goToCalendar() {
+        this.router.navigate(['/monthlyview']);
     }
 }
 

@@ -6,7 +6,7 @@
 
             <ion-card-header>
                 <ion-card-title class="todaysmealstittle">Today's Meals</ion-card-title>
-                <h3 class="todaysdate">{{ formattedDate }}</h3>
+                <h3 class="todaysdate" (click)="goToCalendar()">{{ formattedDate }}</h3>
                 <!-- FAB dentro del header -->
                 <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
                     <ion-fab-button (click)="openMealForm()" [disabled]="isDayFinalized">
@@ -34,7 +34,7 @@
                                 </ion-label>
                             </ion-item>
 
-                            <ion-item-options side="end" [disabled]="isDayFinalized">
+                            <ion-item-options side="end" *ngIf="!isDayFinalized">
                                 <ion-item-option (click)="deleteMeal(meal)">
                                     <ion-icon name="trash"></ion-icon>
                                 </ion-item-option>
@@ -131,13 +131,6 @@
                 </ion-list>
 
 
-
-
-
-
-
-
-
                 <!-- Selector de puntuación -->
                 <ion-item class="score" lines="none">
                     <ion-label>Score</ion-label>
@@ -148,10 +141,10 @@
                 </ion-item>
 
                 <ion-item class="alarm" lines="none">
-                    <ion-label>Defrosted Alarm?</ion-label>
+                    <ion-label>Defrosted Alarm</ion-label>
                     <ng-container *ngIf="!currentMeal.alarmTime; else alarmSet">
                         <!-- Al activar el toggle, se abre el modal -->
-                        <ion-toggle aria-label="Delivery Toggle" slot="end" [(ngModel)]="currentMeal.reminder"
+                        <ion-toggle aria-label="Defrosted Toggle" slot="end" [(ngModel)]="currentMeal.reminder"
                             (ionChange)="openTimePicker()"></ion-toggle>
                     </ng-container>
                     <ng-template #alarmSet>
@@ -188,7 +181,7 @@
 
 
                 <ion-item class="delivery" lines="none">
-                    <ion-label>Delivery?</ion-label>
+                    <ion-label>Delivery</ion-label>
                     <ion-toggle aria-label="Delivery Toggle" slot="end" [(ngModel)]="currentMeal.hasDelivery">
                     </ion-toggle>
                 </ion-item>
