@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, ChangeDetectorRef, HostListener, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Meal, FirestoreDayData } from '../../interfaces/meal.interface';
@@ -10,6 +10,9 @@ import { addIcons } from 'ionicons';
 import { add, trash, caretBackOutline, caretForwardOutline } from 'ionicons/icons';
 import { NotificationsService } from '../../services/notifications.service';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Keyboard } from '@capacitor/keyboard';
+import { Platform } from '@ionic/angular';
+
 
 
 @Component({
@@ -25,6 +28,9 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
     @ViewChild('gestureContainer', { static: true }) gestureContainer!: ElementRef;
     @ViewChild('mealCard', { read: ElementRef }) mealCard!: ElementRef;
+    @ViewChild('mealInput') mealInput!: ElementRef;
+    @ViewChild('suggestionsContainer') suggestionsContainer!: ElementRef;;
+
     private gesture!: Gesture;
 
 
@@ -40,6 +46,8 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     isModalOpen = false;
     currentMeal: Meal = { id: '', name: '', score: 0, done: false, mealtype: '', reminder: false, hasDelivery: false };
     mealDoneControls: { [key: string]: FormControl } = {};
+
+    isDayFinalized: boolean = false;
 
     public isTimePickerOpen = false;
     public selectedTime: string = '09:00';
@@ -61,9 +69,47 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         private modalCtrl: ModalController,
         private gestureCtrl: GestureController,
         private notificationsService: NotificationsService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private platform: Platform,
 
     ) { addIcons({ add, trash, caretBackOutline, caretForwardOutline }); }
+
+    onKeyDown(event: KeyboardEvent) {
+        if (event.key === 'Enter') {
+            this.suggestions = []; // 🔥 Vaciar la lista de sugerencias
+            event.preventDefault(); // ❌ Evita scroll raro o que envíe formularios por accidente
+        }
+    }
+
+    // 🔹 CIERRA la lista si se toca fuera del input o la lista
+    @HostListener('document:click', ['$event'])
+    @HostListener('document:touchstart', ['$event'])
+    onClickOutside(event: Event) {
+        setTimeout(() => {
+            if (!this.mealInput?.nativeElement || !this.suggestionsContainer?.nativeElement) {
+                return;
+            }
+
+            const inputElement = this.mealInput.nativeElement;
+            const suggestionsElement = this.suggestionsContainer.nativeElement;
+            const target = event.target as HTMLElement;
+
+            // Obtener la ruta del evento para manejar Shadow DOM
+            const path = event.composedPath ? event.composedPath() : [];
+            const isInsideInput = inputElement?.contains(target) || path.includes(inputElement);
+            const isInsideSuggestions = suggestionsElement?.contains(target) || path.includes(suggestionsElement);
+
+            if (!this.mealInput || !this.suggestionsContainer || !this.mealInput.nativeElement || !this.suggestionsContainer.nativeElement) {
+                return;
+            }
+
+
+            // Si el clic fue fuera, vaciar la lista de sugerencias
+            this.suggestions = [];
+            this.cdr.detectChanges();
+        }, 50);
+    }
+
 
 
     /**
@@ -123,6 +169,23 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 this.mealDoneControls[meal.id] = new FormControl(meal.done);
             });
         });
+
+        if (this.platform.is('mobile')) {  // Solo lo hacemos en móvil
+            Keyboard.addListener('keyboardDidShow', (info) => {
+                console.log('Teclado abierto, moviendo modal...');
+                document.body.classList.add('keyboard-is-open');
+            });
+
+            Keyboard.addListener('keyboardDidHide', () => {
+                console.log('Teclado cerrado, restaurando modal...');
+
+                // 🔥 En lugar de quitar la clase de golpe, esperamos un poco
+                setTimeout(() => {
+                    document.body.classList.remove('keyboard-is-open');
+                }, 200); // ⏳ Pequeño delay para que la animación se vea mejor
+            });
+
+        }
     }
 
     /**
@@ -139,17 +202,22 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             if (docSnap.exists()) {
                 const data = docSnap.data() as FirestoreDayData;
                 this.meals = data.meals || this.getDefaultMeals();
+                this.isDayFinalized = data.isComplete ?? false;  // ✅ Guardamos si el día está finalizado
             } else {
                 this.meals = this.getDefaultMeals();
+                this.isDayFinalized = false;
             }
 
-            this.cdr.detectChanges(); // <-- Actualiza la UI aquí también
+            this.cdr.detectChanges(); // 🔄 Asegura que la UI se actualice
+
         } catch (error) {
             console.error('Error al cargar datos:', error);
             this.meals = this.getDefaultMeals();
+            this.isDayFinalized = false;
             this.cdr.detectChanges();
         }
     }
+
 
     // Añade esta función para obtener las comidas por defecto
     private getDefaultMeals(): Meal[] {
@@ -167,6 +235,9 @@ export class DailyviewPage implements OnInit, AfterViewInit {
      * ----------------------------------------------------------------
      */
     ngAfterViewInit() {
+        console.log(this.mealInput); // Verifica si está definido
+        console.log(this.suggestionsContainer);
+
         // Cambiar de .swipe-header a .swipe-footer
         const swipeFooter = this.mealCard.nativeElement.querySelector('.swipe-footer');
 
@@ -195,6 +266,14 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             }
         });
         this.gesture.enable();
+
+        setTimeout(() => {
+            console.log('mealInput:', this.mealInput);
+            console.log('suggestionsContainer:', this.suggestionsContainer);
+        }, 500);
+
+
+
     }
 
     handleSwipeEnd(event: any) {
@@ -238,6 +317,11 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
 
     openMealForm(meal?: Meal) {
+        if (this.isDayFinalized) {
+            console.log('El día está finalizado. No se pueden editar comidas.');
+            return;
+        }
+
         this.currentMeal = meal
             ? { ...meal }
             : {
@@ -245,16 +329,15 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 name: '',
                 score: 0,
                 done: false,
-                mealtype: '', // Se seleccionará en el modal
+                mealtype: '',
                 reminder: false,
                 hasDelivery: false
             };
 
         this.isModalOpen = true;
-        this.cdr.detectChanges(); // Forzar actualización de la UI
-
-        console.log('Opening meal form:', this.currentMeal);
+        this.cdr.detectChanges();
     }
+
 
 
     closeModal() {
@@ -269,21 +352,47 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     filterSuggestions() {
+
+        console.log("Filtrando sugerencias...");
+        console.log("Texto actual:", this.currentMeal.name);
+        console.log("Sugerencias antes del filtrado:", this.suggestions);
+
         const query = this.currentMeal.name?.trim().toLowerCase() || '';
         if (!query) {
             this.suggestions = [];
             return;
         }
+
         this.suggestions = this.allMealData
             .filter(meal => meal.name.toLowerCase().startsWith(query))
             .sort((a, b) => a.name.localeCompare(b.name));
+
+        // 🔥 Solo intentamos desplazar el input si existe
+        setTimeout(() => {
+            if (this.mealInput?.nativeElement) {
+                this.mealInput.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+
+        console.log("Sugerencias después del filtrado:", this.suggestions);
+
     }
 
-    selectSuggestion(suggestion: { name: string; score: number }) {
+
+
+    selectSuggestion(suggestion: { name: string; score: number }, event: Event) {
+        event.stopPropagation();
         this.currentMeal.name = suggestion.name;
         this.currentMeal.score = suggestion.score;
-        this.suggestions = [];
+
+        // Retrasar la limpieza para evitar conflictos
+        setTimeout(() => {
+            this.suggestions = [];
+            this.cdr.detectChanges();
+        }, 0);
     }
+
+
 
     async askToAddMealToDatabase(): Promise<boolean> {
         await this.modalCtrl.dismiss();
@@ -314,23 +423,38 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         });
     }
 
-    saveMeal() {
-        console.log('Saving meal:', this.currentMeal);
+    async saveMeal() {
+        if (this.isDayFinalized) {
+            console.log('No se puede modificar una comida en un día finalizado.');
+            return;
+        }
 
-        // Validación: No guardar si falta algún dato obligatorio
         if (!this.currentMeal.name || !this.currentMeal.score || !this.currentMeal.mealtype) {
             console.error('Meal name, score, and meal type are required.');
             return;
         }
 
-        // Si la comida ya existe, la actualizamos
+        // 🔍 Comprobar si la comida ya existe en la base de datos
+        const mealExists = this.allMealData.some(meal => meal.name.toLowerCase() === this.currentMeal.name.toLowerCase());
+
+        if (!mealExists) {
+            console.log(`"${this.currentMeal.name}" no está en la base de datos. Preguntando al usuario...`);
+            const shouldAdd = await this.askToAddMealToDatabase();
+
+            // ✅ **Independientemente de la respuesta, la comida se añade a la vista diaria**
+            if (!shouldAdd) {
+                console.log('El usuario ha rechazado añadir la comida a la base de datos, pero la añadimos a la vista diaria.');
+            }
+        }
+
+        // Si estamos editando una comida ya existente
         if (this.currentMeal.id) {
             const index = this.meals.findIndex(m => m.id === this.currentMeal.id);
             if (index !== -1) {
                 this.meals[index] = { ...this.currentMeal };
             }
         } else {
-            // Crear una nueva comida y asignarle un ID único
+            // Si es una nueva comida, la añadimos al array de comidas del día
             const newMeal: Meal = {
                 ...this.currentMeal,
                 id: (this.meals.length + 1).toString(),
@@ -339,19 +463,11 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             this.meals.push(newMeal);
         }
 
-        // Verificar si la comida ya está en la base de datos global
-        const mealExists = this.allMealData.some(
-            meal => meal.name.toLowerCase() === this.currentMeal.name.toLowerCase()
-        );
-
-        if (!mealExists) {
-            this.askToAddMealToDatabase();
-        }
-
-        // Cerrar el modal y guardar en Firebase
         this.closeModal();
         this.saveDayDataToFirebase();
     }
+
+
 
 
     async addMealToDatabase() {
@@ -404,16 +520,27 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     toggleMealDone(meal: Meal): void {
+        if (this.isDayFinalized) {
+            console.log('No se puede marcar como hecha una comida en un día finalizado.');
+            return;
+        }
+
         meal.done = !meal.done;
         this.saveDayDataToFirebase();
-        console.log('Meal status updated and saved in Firebase:', meal);
+        console.log('Meal status updated:', meal);
     }
+
 
     isDayComplete(): boolean {
         return this.meals.every(meal => meal.name && meal.done);
     }
 
     async finalizeDay() {
+        if (this.isDayFinalized) {
+            console.log("Este día ya está finalizado, no se puede volver a finalizar.");
+            return;
+        }
+
         if (this.isDayComplete()) {
             const averageScore = this.calculateAverageScore();
             const color = this.getColorByScore(averageScore);
@@ -428,11 +555,13 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                     year: this.year,
                     month: this.month,
                     day: this.day,
-                    isComplete: true,
+                    isComplete: true,  // Marcar el día como finalizado
                     meals: this.meals
                 }, { merge: true });
 
                 console.log('Day finalized and saved to Firestore:', { averageScore, color, isComplete: true });
+
+                this.isDayFinalized = true;  // 🔴 Se actualiza la variable en la UI
 
                 const modal = await this.modalCtrl.create({
                     component: DayCompleteModalComponent,
@@ -449,6 +578,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
             console.log('Day is not complete. Ensure all meals are done.');
         }
     }
+
 
     calculateAverageScore(): number {
         const totalScore = this.meals.reduce((sum, meal) => sum + meal.score, 0);
@@ -481,6 +611,13 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
             if (docSnap.exists()) {
                 const existingData = docSnap.data() as FirestoreDayData;
+
+                // 🚨 Bloquear edición si el día ya está finalizado
+                if (existingData.isComplete) {
+                    console.log('No se pueden modificar los datos de un día finalizado.');
+                    return;
+                }
+
                 const updatedData: FirestoreDayData = {
                     ...existingData,
                     meals: sanitizedMeals,
@@ -490,7 +627,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 };
 
                 updateDoc(docRef, updatedData)
-                    .then(() => console.log('Documento actualizado (sólo meals):', updatedData))
+                    .then(() => console.log('Documento actualizado:', updatedData))
                     .catch((error) => console.error('Error al actualizar:', error));
 
             } else {
@@ -505,12 +642,13 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 };
 
                 setDoc(docRef, initialData)
-                    .then(() => console.log('Documento creado (día nuevo):', initialData))
+                    .then(() => console.log('Documento creado:', initialData))
                     .catch((error) => console.error('Error al crear doc:', error));
             }
         })
             .catch((error) => console.error('Error al leer doc:', error));
     }
+
 
     clearMealContent(meal: Meal) {
         this.alertController.create({

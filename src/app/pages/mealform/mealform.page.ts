@@ -179,7 +179,9 @@ export class MealformPage implements OnInit {
       return;
     }
 
-    let imageUrl = '';
+    let imageUrl = this.selectedImage; // Mantener la imagen actual
+
+    // Si hay una nueva imagen en base64, subirla y reemplazar la existente
     if (this.selectedImage && this.selectedImage.startsWith('data:image')) {
       try {
         imageUrl = await this.uploadImage(this.selectedImage);
@@ -197,7 +199,7 @@ export class MealformPage implements OnInit {
       url: url.trim() || '',
       thumbsUp: this.thumbUpSelected,
       thumbsDown: this.thumbDownSelected,
-      image: imageUrl
+      image: imageUrl // 🔥 Mantiene la imagen existente si no se cambia
     };
 
     try {
@@ -219,6 +221,7 @@ export class MealformPage implements OnInit {
       this.isLoading = false;
     }
   }
+
 
   async uploadImage(imageBase64: string): Promise<string> {
     const storage = getStorage();

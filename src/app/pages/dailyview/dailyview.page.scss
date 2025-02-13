@@ -280,6 +280,9 @@ ion-item-options {
 
 }
 
+
+
+
 ion-icon {
     font-size: 24px;
     margin: 0;
@@ -306,6 +309,10 @@ ion-icon {
     margin-top: 20%;
     display: flex;
     flex-direction: column;
+}
+
+.alarmbuttons {
+    --color: #ffffff;
 }
 
 
@@ -434,4 +441,13 @@ ion-fab {
     font-size: 1.2rem;
     color: var(--ion-color-medium);
     margin-top: 20px;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.hidden {
+    display: none;
 }

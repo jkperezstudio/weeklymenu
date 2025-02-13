@@ -80,10 +80,22 @@
     --ion-toggle-background-checked: var(--ion-color-primary);
     --ion-toggle-handle-background: #ffffff;
 
+    ion-toggle {
+        --track-background-checked: #2b2b2b;
+    }
+
     /* -- Alerts y Popovers -- */
     --ion-alert-background: #2d2d2d;
     --ion-alert-button-color: var(--ion-text-color);
     --ion-alert-input-background: #3a3a3a;
+
+    ion-popover {
+        z-index: 99999 !important;
+        position: absolute !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
 
     /* DateTime */
     ion-datetime::part(time-button) {
@@ -236,4 +248,14 @@ ion-datetime::part(day-today) {
 
 ion-datetime .datetime-header .datetime-selected-date {
     margin-top: 10px !important;
+}
+
+.keyboard-is-open ion-modal {
+    transform: translateY(-15vh) !important;
+    transition: transform 0.3s ease-in-out;
+}
+
+ion-modal {
+    transition: transform 0.3s ease-in-out;
+    /* 🔥 Esto hace que vuelva suavemente */
 }

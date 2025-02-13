@@ -71,9 +71,11 @@ export class MealdbPage implements OnInit {
     this.fetchMeals(); // Refresh meals
   }
 
-  goToMealForm(meal: Meal) {
-    this.router.navigate(['/mealform', meal.id]);
+  goToMealForm(meal?: Meal) {
+    const mealId = meal ? meal.id : 'new';  // Si no hay meal, usa 'new'
+    this.router.navigate(['/mealform', mealId]);
   }
+
 
   capitalizeWords(str: string): string {
     return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());

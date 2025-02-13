@@ -50,7 +50,13 @@ ion-range {
 
 }
 
+ion-card-title {
+    margin: 0;
+    flex: 1;
+    text-align: left;
+    color: white;
 
+}
 
 ion-content {
     --overflow: scroll;

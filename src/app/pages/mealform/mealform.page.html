@@ -7,7 +7,7 @@
 
   <ion-card>
     <ion-card-header>
-      <ion-card-title class="mealformtitle">Meal Form</ion-card-title>
+      <ion-card-title>Meal Form</ion-card-title>
     </ion-card-header>
     <!-- Indicador de carga -->
     <div class="loading-overlay" *ngIf="isLoading">
@@ -63,9 +63,8 @@
         <div class="thumb thumb-down" [class.selected]="thumbDownSelected" (click)="toggleThumb('down')"></div>
 
         <ion-button class="accept-button" expand="block" [disabled]="!mealNameControl.valid || !scoreControl.value"
-          (click)="saveMeal()" [innerHTML]="mealId ? 'EDIT<br>MEAL' : 'SAVE<br>MEAL'">
+          (click)="saveMeal()" [innerHTML]="mealId !== 'new' ? 'EDIT<br>MEAL' : 'ADD<br>MEAL'">
         </ion-button>
-
 
 
       </div>

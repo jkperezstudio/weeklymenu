@@ -9,7 +9,7 @@
                 <h3 class="todaysdate">{{ formattedDate }}</h3>
                 <!-- FAB dentro del header -->
                 <ion-fab vertical="bottom" horizontal="end" class="footer-fab">
-                    <ion-fab-button (click)="openMealForm()">
+                    <ion-fab-button (click)="openMealForm()" [disabled]="isDayFinalized">
                         <ion-icon name="add"></ion-icon>
                     </ion-fab-button>
                 </ion-fab>
@@ -22,18 +22,20 @@
                         <ion-item-sliding *ngIf="meal.name">
                             <ion-item class="mealReady" lines="none">
                                 <ion-checkbox aria-label="Meal Done Checkbox" slot="end" [checked]="meal.done"
-                                    (ionChange)="toggleMealDone(meal)" [ngClass]="getColorClass(meal)">
+                                    (ionChange)="toggleMealDone(meal)" [disabled]="isDayFinalized"
+                                    [ngClass]="getColorClass(meal)">
                                 </ion-checkbox>
 
-                                <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}">
+                                <ion-label (click)="openMealForm(meal)" [ngClass]="{'meal-done': meal.done}"
+                                    [class.disabled]="isDayFinalized">
                                     <h1 class="mealtype">{{ meal.mealtype }}</h1>
                                     <h2 class="meal">{{ meal.name }}</h2>
                                     <p *ngIf="meal.description">{{ meal.description }}</p>
                                 </ion-label>
                             </ion-item>
 
-                            <ion-item-options side="end">
-                                <ion-item-option color="danger" (click)="deleteMeal(meal)">
+                            <ion-item-options side="end" [disabled]="isDayFinalized">
+                                <ion-item-option (click)="deleteMeal(meal)">
                                     <ion-icon name="trash"></ion-icon>
                                 </ion-item-option>
                             </ion-item-options>
@@ -77,14 +79,14 @@
             </div>
         </ion-card>
 
-        <!-- Botones fijos en la parte inferior -->
-        <div class="finalize-button">
+        <!-- Botón para finalizar el día, solo aparece si el día NO está finalizado -->
+        <div class="finalize-button" *ngIf="!isDayFinalized">
             <ion-button (click)="finalizeDay()" [disabled]="meals.length === 0 || !isDayComplete()"
                 [color]="meals.length > 0 && isDayComplete() ? 'primary' : 'medium'">
                 Finalize Day
             </ion-button>
-
         </div>
+
     </div>
 
     <!-- Modal para añadir/editar comidas -->
@@ -114,16 +116,27 @@
                 </ion-item>
 
                 <!-- Campo para el nombre de la comida -->
-                <ion-input class="name" label="Name" placeholder="Enter meal name" labelPlacement="floating"
-                    fill="outline" required [(ngModel)]="currentMeal.name" (ionInput)="filterSuggestions()">
+                <ion-input #mealInput [(ngModel)]="currentMeal.name" (ionInput)="filterSuggestions()"
+                    (keydown)="onKeyDown($event)" class="name" label="Name" placeholder="Enter meal name"
+                    labelPlacement="floating" fill="outline" required>
                 </ion-input>
 
                 <!-- Lista de sugerencias -->
-                <ion-list lines="none" *ngIf="suggestions.length > 0" class="suggestion-list">
-                    <ion-item button *ngFor="let suggestion of suggestions" (click)="selectSuggestion(suggestion)">
+                <ion-list #suggestionsContainer [ngClass]="{'hidden': suggestions.length === 0}" lines="none"
+                    class="suggestion-list">
+                    <ion-item button *ngFor="let suggestion of suggestions"
+                        (click)="selectSuggestion(suggestion, $event)">
                         {{ suggestion.name }}
                     </ion-item>
                 </ion-list>
+
+
+
+
+
+
+
+
 
                 <!-- Selector de puntuación -->
                 <ion-item class="score" lines="none">
@@ -159,8 +172,8 @@
                             <ion-toolbar>
                                 <ion-title>Set the time</ion-title>
                                 <ion-buttons slot="end">
-                                    <ion-button (click)="cancelTimePicker()">Cancel</ion-button>
-                                    <ion-button (click)="confirmTimePicker()">OK</ion-button>
+                                    <ion-button class="alarmbuttons" (click)="cancelTimePicker()">Cancel</ion-button>
+                                    <ion-button class="alarmbuttons" (click)="confirmTimePicker()">OK</ion-button>
                                 </ion-buttons>
                             </ion-toolbar>
                         </ion-header>
