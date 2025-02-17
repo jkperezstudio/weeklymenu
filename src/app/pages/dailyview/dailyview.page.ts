@@ -454,14 +454,22 @@ export class DailyviewPage implements OnInit, AfterViewInit {
         if (this.currentMeal.id) {
             const index = this.meals.findIndex(m => m.id === this.currentMeal.id);
             if (index !== -1) {
-                this.meals[index] = { ...this.currentMeal };
+                // Actualizar todos los campos manualmente
+                this.meals[index] = {
+                    ...this.meals[index],  // Mantiene lo que tenía antes
+                    ...this.currentMeal    // Aplica los nuevos cambios
+                };
             }
         } else {
-            // Si es una nueva comida, la añadimos al array de comidas del día
+            // Nueva comida
             const newMeal: Meal = {
-                ...this.currentMeal,
                 id: (this.meals.length + 1).toString(),
-                mealtype: this.currentMeal.mealtype
+                name: this.currentMeal.name,
+                score: this.currentMeal.score,
+                done: this.currentMeal.done,
+                mealtype: this.currentMeal.mealtype,
+                reminder: this.currentMeal.reminder ?? false, // Si es undefined, que sea false
+                hasDelivery: this.currentMeal.hasDelivery ?? false
             };
             this.meals.push(newMeal);
         }
@@ -739,14 +747,30 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     removeAlarm() {
-        // Cancela la notificación si existe y limpia la alarma
-        if (this.currentMeal.notificationId) {
-            this.notificationsService.cancelDefrostAlarm(this.currentMeal.notificationId);
-        }
-        this.currentMeal.alarmTime = undefined;
-        this.currentMeal.notificationId = undefined;
+        console.log("Eliminando alarma...");
+
+        this.currentMeal.alarms = [];
+        this.currentMeal.alarmTime = null;  // 🔥 Cambiar undefined por null
+        this.currentMeal.notificationId = null;  // 🔥 Cambiar undefined por null
         this.currentMeal.reminder = false;
+
+        if (this.currentMeal.id) {
+            const index = this.meals.findIndex(m => m.id === this.currentMeal.id);
+            if (index !== -1) {
+                this.meals[index] = {
+                    ...this.meals[index],
+                    alarms: [],
+                    alarmTime: null, // 🔥 Cambiar undefined por null
+                    notificationId: null, // 🔥 Cambiar undefined por null
+                    reminder: false
+                };
+            }
+        }
+
+        this.saveDayDataToFirebase();
     }
+
+
 
     openTimePicker() {
         this.isTimePickerOpen = true;
@@ -789,7 +813,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     }
 
     goToCalendar() {
-        this.router.navigate(['/monthlyview']);
+        this.router.navigate(['/tabs/monthly']);
     }
 }
 

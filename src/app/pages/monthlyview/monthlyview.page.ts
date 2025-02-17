@@ -191,7 +191,7 @@ export class MonthlyViewPage implements OnInit {
       const month = selectedDate.getMonth() + 1;
       const year = selectedDate.getFullYear();
       // Aquí aplicamos el replaceUrl
-      this.router.navigate(['/dailyview', `${year}-${month}-${day}`], { replaceUrl: true });
+      this.router.navigate(['/tabs/daily', `${year}-${month}-${day}`], { replaceUrl: true });
     }, 50);
   }
 

@@ -19,7 +19,9 @@
             <ion-card-content class="meals-content">
                 <div *ngIf="meals.length > 0; else noMeals">
                     <div *ngFor="let meal of meals">
+
                         <ion-item-sliding *ngIf="meal.name">
+
                             <ion-item class="mealReady" lines="none">
                                 <ion-checkbox aria-label="Meal Done Checkbox" slot="end" [checked]="meal.done"
                                     (ionChange)="toggleMealDone(meal)" [disabled]="isDayFinalized"
@@ -33,6 +35,7 @@
                                     <p *ngIf="meal.description">{{ meal.description }}</p>
                                 </ion-label>
                             </ion-item>
+
 
                             <ion-item-options side="end" *ngIf="!isDayFinalized">
                                 <ion-item-option (click)="deleteMeal(meal)">

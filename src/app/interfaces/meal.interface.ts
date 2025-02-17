@@ -9,8 +9,8 @@ export interface Meal {
     mealtype: string;
     description?: string | null;
     alarms?: string[];
-    alarmTime?: string;
-    notificationId?: number;
+    alarmTime?: string | null;
+    notificationId?: number | null;
     reminder?: boolean;
     reminderTime?: string;
     hasDelivery?: boolean;

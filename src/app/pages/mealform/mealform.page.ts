@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -34,7 +34,8 @@ export class MealformPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private bottomSheet: MatBottomSheet,
-    private firestore: Firestore
+    private firestore: Firestore,
+    private router: Router,
   ) { }
 
   async ngOnInit() {
@@ -179,9 +180,8 @@ export class MealformPage implements OnInit {
       return;
     }
 
-    let imageUrl = this.selectedImage; // Mantener la imagen actual
+    let imageUrl = this.selectedImage;
 
-    // Si hay una nueva imagen en base64, subirla y reemplazar la existente
     if (this.selectedImage && this.selectedImage.startsWith('data:image')) {
       try {
         imageUrl = await this.uploadImage(this.selectedImage);
@@ -199,7 +199,7 @@ export class MealformPage implements OnInit {
       url: url.trim() || '',
       thumbsUp: this.thumbUpSelected,
       thumbsDown: this.thumbDownSelected,
-      image: imageUrl // 🔥 Mantiene la imagen existente si no se cambia
+      image: imageUrl
     };
 
     try {
@@ -215,12 +215,17 @@ export class MealformPage implements OnInit {
         console.log('Meal saved successfully:', mealData);
         this.resetForm();
       }
+
+      // 🔥 Redirigir a DataBase después de guardar
+      this.router.navigate(['/tabs/database']);
+
     } catch (error) {
       console.error('Error saving meal:', error);
     } finally {
       this.isLoading = false;
     }
   }
+
 
 
   async uploadImage(imageBase64: string): Promise<string> {

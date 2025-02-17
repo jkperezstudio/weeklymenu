@@ -1,62 +1,75 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  // Cuando entras a la app, redirige a /tabs/daily
   {
     path: '',
-    redirectTo: 'dailyview',
+    redirectTo: '/tabs/daily',
     pathMatch: 'full',
   },
-  /*
+
+  // Esta es la definición del layout de tabs
   {
-    path: '',
-    redirectTo: 'folder/inbox',
-    pathMatch: 'full',
+    path: 'tabs',
+    loadComponent: () => import('./tabs/tabs.page').then((m) => m.TabsPage),
+    children: [
+      {
+        path: 'daily',
+        loadComponent: () =>
+          import('./pages/dailyview/dailyview.page').then((m) => m.DailyviewPage),
+      },
+      {
+        path: 'daily/:day',
+        loadComponent: () =>
+          import('./pages/dailyview/dailyview.page').then((m) => m.DailyviewPage),
+      },
+      {
+        path: 'monthly',
+        loadComponent: () =>
+          import('./pages/monthlyview/monthlyview.page').then((m) => m.MonthlyViewPage),
+      },
+      {
+        path: 'database', // <--- Aquí cargas mealdb.page, renombrado a "database"
+        loadComponent: () =>
+          import('./pages/mealdb/mealdb.page').then((m) => m.MealdbPage),
+      },
+      {
+        path: '',
+        redirectTo: 'daily',
+        pathMatch: 'full',
+      },
+    ],
   },
-  {
-    path: 'folder/:id',
-    loadComponent: () =>
-      import('./folder/folder.page').then((m) => m.FolderPage),
-  },
-  */
-  {
-    path: 'dailyview',
-    loadComponent: () => import('./pages/dailyview/dailyview.page').then(m => m.DailyviewPage)
-  },
-  {
-    path: 'dailyview/:day',
-    loadComponent: () => import('./pages/dailyview/dailyview.page').then(m => m.DailyviewPage)
-  },
+
+  // Rutas extra que **no** van en el tab-menu
   {
     path: 'weeklyview',
-    loadComponent: () => import('./pages/weeklyview/weeklyview.page').then(m => m.WeeklyviewPage)
-  },
-  {
-    path: 'monthlyview',
-    loadComponent: () => import('./pages/monthlyview/monthlyview.page').then(m => m.MonthlyViewPage)
-
+    loadComponent: () =>
+      import('./pages/weeklyview/weeklyview.page').then((m) => m.WeeklyviewPage),
   },
   {
     path: 'mealform',
-    loadComponent: () => import('./pages/mealform/mealform.page').then(m => m.MealformPage)
+    loadComponent: () =>
+      import('./pages/mealform/mealform.page').then((m) => m.MealformPage),
   },
   {
     path: 'mealform/:id',
-    loadComponent: () => import('./pages/mealform/mealform.page').then(m => m.MealformPage)
-  },
-  {
-    path: 'mealdb',
-    loadComponent: () => import('./pages/mealdb/mealdb.page').then(m => m.MealdbPage)
+    loadComponent: () =>
+      import('./pages/mealform/mealform.page').then((m) => m.MealformPage),
   },
   {
     path: 'stats',
-    loadComponent: () => import('./pages/stats/stats.page').then(m => m.StatsPage)
+    loadComponent: () =>
+      import('./pages/stats/stats.page').then((m) => m.StatsPage),
   },
   {
     path: 'config',
-    loadComponent: () => import('./pages/config/config.page').then(m => m.ConfigPage)
+    loadComponent: () =>
+      import('./pages/config/config.page').then((m) => m.ConfigPage),
   },
   {
     path: 'checkbox-test',
-    loadComponent: () => import('./pages/checkbox-test/checkbox-test.page').then(m => m.CheckboxTestPage)
+    loadComponent: () =>
+      import('./pages/checkbox-test/checkbox-test.page').then((m) => m.CheckboxTestPage),
   },
 ];
