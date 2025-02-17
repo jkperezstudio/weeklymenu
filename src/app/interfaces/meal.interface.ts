@@ -17,7 +17,7 @@ export interface Meal {
     recipe?: string | null;
     url?: string | null;
     image?: string | null;
-
+    imageLoaded?: boolean;
 }
 
 

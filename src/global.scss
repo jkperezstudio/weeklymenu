@@ -114,6 +114,8 @@
 
 
 
+
+
     /* Highlighted days */
     ion-datetime::part(day-highlighted),
     ion-datetime::part(day-selected),
@@ -258,4 +260,12 @@ ion-datetime .datetime-header .datetime-selected-date {
 ion-modal {
     transition: transform 0.3s ease-in-out;
     /* 🔥 Esto hace que vuelva suavemente */
+}
+
+ion-tab-button {
+    font-size: 12px; // 🔥 Reduce el tamaño del texto
+}
+
+* {
+    font-family: 'Poppins', sans-serif;
 }

@@ -8,6 +8,8 @@ import { ImageOptionsSheetComponent } from '../../image-options-sheet/image-opti
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Firestore, collection, addDoc, doc, getDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { NavigationExtras } from '@angular/router';
+
 
 
 @Component({
@@ -192,32 +194,38 @@ export class MealformPage implements OnInit {
       }
     }
 
-    const mealData = {
+    const mealData: any = {
       name: mealName.trim(),
       score,
-      description: description.trim() || '',
-      url: url.trim() || '',
-      thumbsUp: this.thumbUpSelected,
-      thumbsDown: this.thumbDownSelected,
+      description: description?.trim() || '',
+      url: url?.trim() || '',
       image: imageUrl
     };
 
+    if (this.thumbUpSelected !== undefined) {
+      mealData.thumbsUp = this.thumbUpSelected;
+    }
+    if (this.thumbDownSelected !== undefined) {
+      mealData.thumbsDown = this.thumbDownSelected;
+    }
+
     try {
-      if (this.mealId) {
-        // Editando meal existente
+      if (this.mealId && this.mealId !== 'new') {
         const mealDocRef = doc(this.firestore, `meals/${this.mealId}`);
         await updateDoc(mealDocRef, mealData);
         console.log('Meal updated successfully:', mealData);
       } else {
-        // Creando nueva meal
         const mealsCollection = collection(this.firestore, 'meals');
-        await addDoc(mealsCollection, mealData);
+        const docRef = await addDoc(mealsCollection, mealData);
         console.log('Meal saved successfully:', mealData);
-        this.resetForm();
+        this.mealId = docRef.id;
       }
 
-      // 🔥 Redirigir a DataBase después de guardar
-      this.router.navigate(['/tabs/database']);
+      // 🔥 Redirigir a DDBB con un flag para forzar actualización
+      const navigationExtras: NavigationExtras = {
+        queryParams: { refresh: 'true' }
+      };
+      this.router.navigate(['/tabs/database'], navigationExtras);
 
     } catch (error) {
       console.error('Error saving meal:', error);

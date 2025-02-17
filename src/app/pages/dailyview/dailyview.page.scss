@@ -37,26 +37,27 @@ ion-checkbox::part(container) {
 }
 
 .mealtype {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
 }
 
 .meal {
-    font-size: 20px;
+    font-size: 16px;
+    color: #ffffff
 }
 
 .notmealyet {
-    font-size: 20px;
+    font-size: 16px;
     font-style: italic;
     color: #616e7e
 }
 
 
-.meal-done h2,
+
 .meal-done p {
-    font-size: 20px;
+    font-size: 16px;
     text-decoration: line-through;
-    color: grey;
+    color: #616e7e;
 }
 
 ion-card {

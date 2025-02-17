@@ -221,3 +221,20 @@ ion-fab {
         }
     }
 }
+
+.image-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    min-height: 50px;
+}
+
+ion-spinner {
+    position: absolute;
+}
+
+.hidden {
+    display: none;
+}

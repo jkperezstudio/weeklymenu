@@ -185,7 +185,7 @@ export class DailyviewPage implements OnInit, AfterViewInit {
                 // 🔥 En lugar de quitar la clase de golpe, esperamos un poco
                 setTimeout(() => {
                     document.body.classList.remove('keyboard-is-open');
-                }, 200); // ⏳ Pequeño delay para que la animación se vea mejor
+                }, 50); // ⏳ Pequeño delay para que la animación se vea mejor
             });
 
         }
@@ -574,6 +574,8 @@ export class DailyviewPage implements OnInit, AfterViewInit {
 
                 this.isDayFinalized = true;  // 🔴 Se actualiza la variable en la UI
 
+                this.goToCalendar()
+
                 const modal = await this.modalCtrl.create({
                     component: DayCompleteModalComponent,
                     componentProps: {
@@ -815,5 +817,17 @@ export class DailyviewPage implements OnInit, AfterViewInit {
     goToCalendar() {
         this.router.navigate(['/tabs/monthly']);
     }
+
+    reorderMeals(event: CustomEvent) {
+        this.meals = event.detail.complete(this.meals);  // Actualiza el array con el nuevo orden
+
+        const dayId = `${this.year}-${this.month}-${this.day}`;
+        const docRef = doc(this.firestore, 'dailyScores', dayId); // Asegura que el documento sea el correcto
+
+        updateDoc(docRef, { meals: this.meals })
+            .then(() => console.log('Orden actualizado en Firebase'))
+            .catch((error: any) => console.error('Error guardando el orden:', error));
+    }
+
 }
 
