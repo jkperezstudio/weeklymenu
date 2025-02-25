@@ -1,3 +1,4 @@
+<!--
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
@@ -7,9 +8,30 @@
     <ion-title>Monthly View</ion-title>
   </ion-toolbar>
 </ion-header>
+-->
+
+<!--
+<ion-content *ngIf="isCalendarReady">
+  <div>
+    <div class="date">
+
+      <h3 class="todaysdate">Select a day</h3>
+    </div>
+    <ion-datetime presentation="date" firstDayOfWeek="1" locale="en-UK" [highlightedDates]="highlightedDates"
+      (ionChange)="selectDay($event)">
+    </ion-datetime>
+  </div>
+</ion-content>
+-->
+
 
 <ion-content *ngIf="isCalendarReady">
-  <ion-datetime #calendar presentation="date" firstDayOfWeek="1" (ionChange)="selectDay($event)"
-    [highlightedDates]="highlightedDates" [value]="currentDay">
+
+  <ion-datetime presentation="date" firstDayOfWeek="1" locale="en-UK" [highlightedDates]="highlightedDates"
+    (ionChange)="selectDay($event)">
+    <span class="calendar-title" slot="title">
+      Select Date
+    </span>
   </ion-datetime>
+
 </ion-content>

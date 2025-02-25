@@ -1,9 +1,11 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton, IonDatetime } from '@ionic/angular/standalone';
+import { IonContent, IonDatetime } from '@ionic/angular/standalone';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { Firestore, collection, onSnapshot } from '@angular/fire/firestore';
+import { FirestoreDayData } from '../../interfaces/meal.interface';
+import { Meal } from '../../interfaces/meal.interface';
 import { ChangeDetectorRef } from '@angular/core';
 import { filter } from 'rxjs/operators';
 
@@ -11,17 +13,17 @@ import { filter } from 'rxjs/operators';
   selector: 'app-monthlyview',
   templateUrl: './monthlyview.page.html',
   styleUrls: ['./monthlyview.page.scss'],
+
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [IonDatetime, IonButtons, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonMenuButton, RouterModule]
+  imports: [IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]
 })
 export class MonthlyViewPage implements OnInit {
-
   @ViewChild('calendar', { static: false }) calendar!: IonDatetime;
 
   currentDay: string = '';
   isCalendarReady: boolean = false;
-  dayScores: { [key: string]: { color: string, isComplete: boolean } } = {};
+  dayScores: { [key: string]: { color: string; isComplete: boolean; hasDelivery?: boolean } } = {};
   initialDate: string;
   selectedDate: string = ''; // Almacena la fecha seleccionada inicialmente
 
@@ -35,79 +37,135 @@ export class MonthlyViewPage implements OnInit {
   }
 
   async ngOnInit() {
+    console.log('Días con delivery marcados:', this.dayScores);
+
     this.selectedDate = ''; // Limpia la selección actual
+    this.currentDay = ''; // Limpia el día actual también
 
-    // Si `currentDay` está vacío, asignamos la fecha actual en formato ISO
-    if (!this.currentDay) {
-      this.currentDay = new Date().toISOString();
-    }
-
-    // Suscribirse a cambios de navegación
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         if (event.url.includes('monthlyview')) {
-          this.clearSelectedDay(); // Limpia la selección del día cuando se vuelve a la vista mensual
+          this.clearSelectedDay();
         }
       });
 
     const scoresCollection = collection(this.firestore, 'dailyScores');
 
     onSnapshot(scoresCollection, (snapshot) => {
-
-      this.dayScores = {};
-
       snapshot.forEach((doc) => {
-        const data = doc.data() as { year: number, month: number, day: number, color: string, isComplete: boolean };
+        const data = doc.data() as FirestoreDayData;
         const dateKey = `${data.year}-${data.month.toString().padStart(2, '0')}-${data.day.toString().padStart(2, '0')}`;
+
+        const hasDelivery = data.meals?.some((meal: Meal) => meal.hasDelivery === true) || false;
+
         this.dayScores[dateKey] = {
           color: data.color,
-          isComplete: data.isComplete
+          isComplete: data.isComplete || false,
+          hasDelivery: hasDelivery // Guardamos si hay pedido
         };
+
+
       });
 
-      console.log('Colores actualizados desde Firebase:', this.dayScores);
       this.isCalendarReady = true;
-      this.highlightedDates = this.createHighlightedDatesFunction();
-      this.refreshCalendar();
       this.cdr.detectChanges();
 
+      // 🔥 Aplicamos los estilos una vez que los datos han cargado
+      this.markDeliveryDays();
     });
+
   }
 
-  private createHighlightedDatesFunction(): (isoString: string) => any {
-    return (isoString: string) => {
-      const date = new Date(isoString);
-      const dateKey = this.formatDateKey(date);
-      const dayData = this.dayScores[dateKey];
-
-      if (dayData) {
-        return {
-          textColor: dayData.isComplete ? '#000000' : '#898989',
-          backgroundColor: dayData.isComplete ? dayData.color : '#525357',
-        };
+  // 🔥 Método para marcar los días con delivery en el DOM de ion-datetime
+  markDeliveryDays() {
+    setTimeout(() => {
+      const datetimeElement = document.querySelector('ion-datetime');
+      if (!datetimeElement) {
+        console.log('❌ ion-datetime no encontrado');
+        return;
       }
 
-      // Manejar el día actual
-      if (dateKey === this.formatDateKey(new Date(this.currentDay))) {
-        return {
-          textColor: '#FFFFFF',
-          backgroundColor: '#00FF00', // Color para el día actual (puedes cambiarlo)
-        };
+      const shadowRoot = datetimeElement.shadowRoot;
+      if (!shadowRoot) {
+        console.log('❌ No se pudo acceder al Shadow DOM de ion-datetime');
+        return;
       }
 
-      return {
-        textColor: '#FFFFFF',
-        backgroundColor: '#222222',
-      };
-    };
+      // 🔥 Inyectar CSS en el Shadow DOM
+      const styleTag = document.createElement("style");
+      styleTag.textContent = `
+    button[data-delivery="true"]::before {
+    content: "•";
+    color: #901050;
+    font-size: 25px;  /* Reducimos el tamaño para que no se desborde */
+    position: absolute;
+    bottom: -5px;  /* Bajamos más */
+    right: 5px;  /* Lo pegamos más a la esquina */
+    transform: none;
+    line-height: 1;  /* Evita que se mueva por el tamaño del botón */
+}
+
+`;
+
+
+      if (!shadowRoot.querySelector("style[data-injected='true']")) {
+        styleTag.setAttribute("data-injected", "true");
+        shadowRoot.appendChild(styleTag);
+      }
+
+      Object.keys(this.dayScores).forEach(dateKey => {
+        if (this.dayScores[dateKey]?.hasDelivery) {
+          const [year, month, day] = dateKey.split('-').map(Number);
+
+          const dayElement = shadowRoot.querySelector(
+            `button[data-day="${day}"][data-month="${month}"][data-year="${year}"]`
+          );
+
+          if (dayElement) {
+            dayElement.setAttribute('data-delivery', 'true');
+
+          } else {
+
+          }
+        }
+      });
+    }, 25);
   }
 
-  // En el método clearSelectedDay:
+
+
+
+
+
+
   clearSelectedDay() {
+    // Lógica para reiniciar la selección del día
+    console.log('Reiniciando la selección del día...');
     this.selectedDate = '';
-    this.currentDay = new Date().toISOString();
-    this.cdr.detectChanges();
+  }
+
+  applyActiveDayColor(selectedDate: Date = new Date(), isDeselection: boolean = false) {
+    const dateKey = this.formatDateKey(selectedDate);
+    const dayData = this.dayScores[dateKey];
+    const datetimeElement = document.querySelector('ion-datetime') as HTMLIonDatetimeElement;
+
+    if (datetimeElement) {
+      if (isDeselection) {
+        // Si estamos deseleccionando un día, eliminamos cualquier color previamente aplicado
+        datetimeElement.style.removeProperty('--day-score-color');
+        console.log(`Deseleccionando día ${dateKey}, eliminando color personalizado.`);
+        return;
+      }
+
+      let color = '#1e1e1e'; // Color neutro por defecto
+      if (dayData && dayData.isComplete) {
+        color = dayData.color; // Usar el color solo si está completo
+      }
+
+      datetimeElement.style.setProperty('--day-score-color', color);
+      console.log(`Estableciendo --day-score-color: ${color} para el día ${dateKey}`);
+    }
   }
 
   formatDateKey(date: Date): string {
@@ -126,24 +184,54 @@ export class MonthlyViewPage implements OnInit {
     const selectedDate = new Date(event.detail.value);
     this.selectedDate = this.formatDateKey(selectedDate);
 
+    // Aplicar el color al nuevo día seleccionado
+    this.applyActiveDayColor(selectedDate);
+
     // Navegamos al día seleccionado después de un pequeño retraso
     setTimeout(() => {
       const day = selectedDate.getDate();
       const month = selectedDate.getMonth() + 1;
       const year = selectedDate.getFullYear();
       // Aquí aplicamos el replaceUrl
-      this.router.navigate(['/dailyview', `${year}-${month}-${day}`], { replaceUrl: true });
+      this.router.navigate(['/tabs/daily', `${year}-${month}-${day}`], { replaceUrl: true });
     }, 50);
   }
+
 
   onDateChange(event: any) {
     const selectedDate = new Date(event.detail.value);
     this.selectedDate = selectedDate.toISOString(); // Actualiza el valor seleccionado
-    // Aplica los cambios visuales si corresponde
+    this.applyActiveDayColor(selectedDate); // Aplica los cambios visuales si corresponde
   }
 
-  highlightedDates: (isoString: string) => any = () => ({});
+  highlightedDates = (isoString: string) => {
+    const date = new Date(isoString);
+    const dateKey = this.formatDateKey(date);
+    const dayData = this.dayScores[dateKey];
 
+    if (dayData) {
+      // Podrías distinguir si es un día completo o parcial:
+      if (dayData.isComplete) {
+        // Día completo
+        return {
+          textColor: '#000000',
+          backgroundColor: dayData.color,
+        };
+      } else {
+        // Día parcial
+        return {
+          textColor: '#141218',
+          backgroundColor: '#616e7e',
+        };
+      }
+    }
+
+    // Si no hay datos de ese día, usa un color neutro
+    return {
+      textColor: '#FFFFFF',
+      backgroundColor: '#1e1e1e',
+    };
+  };
 
   resetCalendar() {
     const calendarElement = document.querySelector('ion-datetime') as HTMLIonDatetimeElement;
@@ -158,23 +246,11 @@ export class MonthlyViewPage implements OnInit {
         calendarElement.value = this.currentDay;
         calendarElement.dispatchEvent(new Event('ionChange'));
         this.cdr.detectChanges();
+        this.applyActiveDayColor(); // Reaplicamos el color personalizado
         console.log('Calendario reseteado.');
       }, 50);
     } else {
       console.warn('No se encontró el calendario para resetear.');
     }
-  }
-
-  private refreshCalendar() {
-    const currentValue = this.currentDay;
-
-    // Usar un valor diferente temporalmente (no vacío)
-    this.currentDay = new Date().toISOString();
-    this.cdr.detectChanges();
-
-    setTimeout(() => {
-      this.currentDay = currentValue;
-      this.cdr.detectChanges();
-    }, 50); // Aumentar el tiempo de espera
   }
 }

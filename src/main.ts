@@ -13,7 +13,10 @@ import { environment } from './environments/environment';
 import { routes } from './app/app.routes';
 import { addIcons } from 'ionicons';
 import { imagesOutline, cameraOutline, close, add, trash, chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
 
+ScreenOrientation.lock({ orientation: 'portrait' })
+  .catch(err => console.error('Error bloqueando orientación:', err));
 
 
 addIcons({

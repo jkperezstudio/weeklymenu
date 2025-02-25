@@ -37,6 +37,8 @@ export class MonthlyViewPage implements OnInit {
   }
 
   async ngOnInit() {
+    console.log('Días con delivery marcados:', this.dayScores);
+
     this.selectedDate = ''; // Limpia la selección actual
     this.currentDay = ''; // Limpia el día actual también
 
@@ -60,80 +62,100 @@ export class MonthlyViewPage implements OnInit {
         this.dayScores[dateKey] = {
           color: data.color,
           isComplete: data.isComplete || false,
-          hasDelivery: hasDelivery // Guardamos si hay pedido
+          hasDelivery: hasDelivery
         };
-
-
       });
 
       this.isCalendarReady = true;
       this.cdr.detectChanges();
 
-      // 🔥 Aplicamos los estilos una vez que los datos han cargado
-      this.markDeliveryDays();
+      // 🔥 Esperar un poco más antes de marcar los días
+      setTimeout(() => {
+        const datetimeElement = document.querySelector('ion-datetime') as HTMLIonDatetimeElement;
+        if (datetimeElement) {
+          let selectedValue = datetimeElement.value;
+
+          // Si es un array, tomar el primer valor
+          if (Array.isArray(selectedValue)) {
+            selectedValue = selectedValue[0] || "";
+          }
+
+          // Si sigue sin ser válido, usar la fecha actual
+          const selectedDate = selectedValue ? new Date(selectedValue) : new Date();
+          const currentYear = selectedDate.getFullYear();
+          const currentMonth = selectedDate.getMonth(); // `getMonth()` devuelve 0-11
+
+          console.log(`📌 Datos cargados. Llamando a markDeliveryDays(${currentYear}, ${currentMonth})`);
+          this.markDeliveryDays(currentYear, currentMonth);
+        } else {
+          console.warn('⚠️ No se encontró ion-datetime, no se puede marcar delivery.');
+        }
+      }, 300); // 🔥 Esperamos 300ms antes de ejecutar markDeliveryDays
     });
+
 
   }
 
   // 🔥 Método para marcar los días con delivery en el DOM de ion-datetime
-  markDeliveryDays() {
-    setTimeout(() => {
-      const datetimeElement = document.querySelector('ion-datetime');
-      if (!datetimeElement) {
-        console.log('❌ ion-datetime no encontrado');
-        return;
-      }
+  markDeliveryDays(currentYear: number, currentMonth: number) {
+    console.log('🔹 Ejecutando markDeliveryDays()...');
+    console.log(`📌 Aplicando marcas para ${currentYear}-${currentMonth + 1}`);
 
-      const shadowRoot = datetimeElement.shadowRoot;
-      if (!shadowRoot) {
-        console.log('❌ No se pudo acceder al Shadow DOM de ion-datetime');
-        return;
-      }
+    const datetimeElement = document.querySelector('ion-datetime') as HTMLIonDatetimeElement;
+    if (!datetimeElement) {
+      console.log('❌ ion-datetime no encontrado');
+      return;
+    }
 
-      // 🔥 Inyectar CSS en el Shadow DOM
-      const styleTag = document.createElement("style");
-      styleTag.textContent = `
-    button[data-delivery="true"]::before {
-    content: "•";
-    color: #901050;
-    font-size: 30px;  /* Reducimos el tamaño para que no se desborde */
-    position: absolute;
-    bottom: -5px;  /* Bajamos más */
-    right: 5px;  /* Lo pegamos más a la esquina */
-    transform: none;
-    line-height: 1;  /* Evita que se mueva por el tamaño del botón */
-}
+    const shadowRoot = datetimeElement.shadowRoot;
+    if (!shadowRoot) {
+      console.log('❌ No se pudo acceder al Shadow DOM de ion-datetime');
+      return;
+    }
 
-`;
+    // 🔄 Esperamos activamente a que los botones de los días existan en el DOM antes de marcar
+    const checkDaysReady = setInterval(() => {
+      const dayButtons = shadowRoot.querySelectorAll('button[data-day]');
+      if (dayButtons.length > 0) {
+        console.log(`✅ Botones de días detectados: ${dayButtons.length}. Aplicando marcas...`);
+        clearInterval(checkDaysReady); // Detenemos el intervalo porque ya encontramos los botones
 
+        Object.keys(this.dayScores).forEach(dateKey => {
+          if (this.dayScores[dateKey]?.hasDelivery) {
+            const [year, month, day] = dateKey.split('-').map(Number);
 
-      if (!shadowRoot.querySelector("style[data-injected='true']")) {
-        styleTag.setAttribute("data-injected", "true");
-        shadowRoot.appendChild(styleTag);
-      }
+            console.log(`🔍 Evaluando: ${year}-${month}-${day} (Esperado: ${currentYear}-${currentMonth + 1})`);
 
-      Object.keys(this.dayScores).forEach(dateKey => {
-        if (this.dayScores[dateKey]?.hasDelivery) {
-          const [year, month, day] = dateKey.split('-').map(Number);
+            if (year === currentYear && (month - 1) === currentMonth) {
+              console.log(`✅ Marcando delivery en: ${year}-${month}-${day}`);
 
-          const dayElement = shadowRoot.querySelector(
-            `button[data-day="${day}"][data-month="${month}"][data-year="${year}"]`
-          );
+              const dayElement = shadowRoot.querySelector(`button[data-day="${day}"]`);
 
-          if (dayElement) {
-            dayElement.setAttribute('data-delivery', 'true');
-
-          } else {
-
+              if (dayElement) {
+                dayElement.setAttribute('data-delivery', 'true');
+                console.log(`🎯 PUNTO AÑADIDO: ${year}-${month}-${day}`);
+              } else {
+                console.log(`⚠️ No se encontró el botón para ${year}-${month}-${day}`);
+              }
+            }
           }
-        }
-      });
-    }, 500);
+        });
+      }
+    }, 50); // Comprobamos cada 50ms si los botones ya están renderizados
   }
 
 
 
 
+  onMonthChange(event: any) {
+    const currentYear = event.detail.year;
+    const currentMonth = event.detail.month - 1; // Ajustar porque `event.detail.month` es 1-12 y JS usa 0-11
+
+    console.log(`🔄 Cambio de mes detectado: ${currentYear}-${currentMonth + 1}`);
+
+    // Llamamos a markDeliveryDays con el mes y año correctos
+    this.markDeliveryDays(currentYear, currentMonth);
+  }
 
 
 

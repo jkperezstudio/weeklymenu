@@ -28,10 +28,12 @@
 <ion-content *ngIf="isCalendarReady">
 
   <ion-datetime presentation="date" firstDayOfWeek="1" locale="en-UK" [highlightedDates]="highlightedDates"
-    (ionChange)="selectDay($event)">
+    (ionChange)="selectDay($event)" (ionMonthDidChange)="onMonthChange($event)">
     <span class="calendar-title" slot="title">
       Select Date
     </span>
   </ion-datetime>
+
+
 
 </ion-content>

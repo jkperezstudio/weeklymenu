@@ -46,24 +46,63 @@ export class MealdbPage implements OnInit {
     const mealsSnapshot = await getDocs(mealsCollection);
 
     this.meals = mealsSnapshot.docs.map((doc) => {
-      const data = doc.data() as Meal; // 🔥 Convertimos correctamente a `Meal`
+      const data = doc.data() as Meal;
       return {
-        ...data,  // Copia los datos originales (name, score, etc.)
-        id: doc.id,  // Añade el ID
-        imageLoaded: false // 🔥 Para el spinner
+        ...data,
+        id: doc.id,
+        imageLoaded: false // 🔥 Inicialmente, las imágenes no están cargadas
       };
     });
 
     this.meals.sort((a, b) => a.name.localeCompare(b.name));
     this.filteredMeals = [...this.meals];
 
-    this.isLoading = false; // 🔥 La lista aparece al instante
+    this.isLoading = false;
+
+    // 🔥 Coloca la bolita en su sitio inmediatamente SIN esperar imágenes
+    setTimeout(() => {
+      const tabsPage = document.querySelector('app-tabs') as any;
+      if (tabsPage?.updateIndicatorPosition) {
+        tabsPage.updateIndicatorPosition(true); // 🔥 Sin animación para evitar tirones
+      }
+    }, 50);
   }
+
+
+
+  checkAllImagesLoaded() {
+    const allLoaded = this.filteredMeals.every(meal => meal.imageLoaded);
+
+    if (allLoaded) {
+      console.log("✅ Todas las imágenes han cargado, actualizando bolita...");
+      setTimeout(() => {
+        const tabsPage = document.querySelector('app-tabs') as any;
+        if (tabsPage?.updateIndicatorPosition) {
+          tabsPage.updateIndicatorPosition(); // 🔥 Llamamos a la función para actualizar la bolita
+        }
+      }, 100);
+    } else {
+      console.log("⏳ Aún cargando imágenes...");
+      setTimeout(() => this.checkAllImagesLoaded(), 100);
+    }
+  }
+
+
 
 
   onImageLoad(meal: any) {
-    meal.imageLoaded = true;  // 🔥 Se oculta el spinner cuando la imagen termina de cargar
+    meal.imageLoaded = true;
+
+    // 🔥 Ajuste ligero tras cargar imágenes, pero sin afectar la fluidez
+    setTimeout(() => {
+      const tabsPage = document.querySelector('app-tabs') as any;
+      if (tabsPage?.updateIndicatorPosition) {
+        tabsPage.updateIndicatorPosition(); // 🔥 Solo para un pequeño reajuste
+      }
+    }, 100);
   }
+
+
 
 
   filterMeals() {

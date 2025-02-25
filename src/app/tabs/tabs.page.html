@@ -1,19 +1,57 @@
 <ion-tabs>
   <ion-router-outlet></ion-router-outlet>
+
+
   <ion-tab-bar slot="bottom">
-    <ion-tab-button tab="daily">
-      <ion-icon name="reader"></ion-icon>
-      <ion-label>Daily View</ion-label>
-    </ion-tab-button>
+    <div class="navigation">
 
-    <ion-tab-button tab="monthly">
-      <ion-icon name="calendar"></ion-icon>
-      <ion-label>Food Track</ion-label>
-    </ion-tab-button>
+      <ul>
 
-    <ion-tab-button tab="database">
-      <ion-icon name="server"></ion-icon>
-      <ion-label>Recipes</ion-label>
-    </ion-tab-button>
+        <li class="list" [class.active]="isActive('tabs/daily')">
+          <a [routerLink]="['/tabs/daily']">
+            <span class="icon">
+              <ion-icon name="restaurant-outline"></ion-icon>
+            </span>
+            <span class="text">Daily View</span>
+          </a>
+        </li>
+
+        <li class="list" [class.active]="isActive('tabs/monthly')">
+          <a [routerLink]="['/tabs/monthly']">
+            <span class="icon">
+              <ion-icon name="calendar-outline"></ion-icon>
+            </span>
+            <span class="text">Food Track</span>
+          </a>
+        </li>
+
+        <li class="list" [class.active]="isActive('tabs/database')">
+          <a [routerLink]="['/tabs/database']">
+            <span class="icon">
+              <ion-icon name="book-outline"></ion-icon>
+            </span>
+            <span class="text">Recipes</span>
+          </a>
+        </li>
+
+        <div class="indicator" [style.left]="indicatorLeft" [style.transform]="indicatorTransform"></div>
+
+
+
+      </ul>
+    </div>
+
+    <script>
+      const list = document.querySelectorAll('.list');
+      function activeLink() {
+        list.forEach((item) =>
+          item.classList.remove('active'));
+        this.classList.add('active');
+      }
+      list.forEach((item) =>
+        item.addEventListener('click', activeLink));
+    </script>
+
   </ion-tab-bar>
+
 </ion-tabs>
