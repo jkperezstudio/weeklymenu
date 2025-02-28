@@ -19,7 +19,7 @@ import { NavigationExtras } from '@angular/router';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, IonicModule, MatBottomSheetModule]
 })
-export class MealformPage implements OnInit {
+export class MealFormPage implements OnInit {
   mealId: string | null = null;
   selectedImage: string = 'assets/placeholder-image.png';
   mealNameControl = new FormControl('', { nonNullable: true });

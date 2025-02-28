@@ -13,7 +13,6 @@ import { filter } from 'rxjs/operators';
   selector: 'app-monthlyview',
   templateUrl: './monthlyview.page.html',
   styleUrls: ['./monthlyview.page.scss'],
-
   standalone: true,
   encapsulation: ViewEncapsulation.None,
   imports: [IonDatetime, IonContent, CommonModule, FormsModule, RouterModule]

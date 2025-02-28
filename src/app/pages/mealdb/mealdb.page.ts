@@ -15,7 +15,7 @@ import { ActivatedRoute } from '@angular/router';
   standalone: true,
   imports: [IonSpinner, IonFabButton, IonFab, IonFooter, IonCardTitle, IonCardHeader, IonCard, IonIcon, IonItemOption, IonItemOptions, IonLabel, IonItem, IonItemSliding, IonList, IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, IonThumbnail, ReactiveFormsModule, IonSearchbar]
 })
-export class MealdbPage implements OnInit {
+export class MealDbPage implements OnInit {
   meals: Meal[] = [];
   filteredMeals: Meal[] = [];
   searchQuery = new FormControl('');

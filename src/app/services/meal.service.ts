@@ -8,9 +8,10 @@ import { BehaviorSubject } from 'rxjs';
 export class MealService {
   // Array mock inicial de comidas
   private meals: Meal[] = [
-    { id: '1', name: 'Desayuno', score: 5, done: false },
-    { id: '2', name: 'Comida', score: 3, done: false },
-    { id: '3', name: 'Cena', score: 2, done: false }
+    { id: '1', name: 'Desayuno', score: 5, done: false, mealtype: 'breakfast' },
+    { id: '2', name: 'Comida', score: 3, done: false, mealtype: 'lunch' },
+    { id: '3', name: 'Cena', score: 2, done: false, mealtype: 'dinner' }
+
   ];
 
   // Observable para poder suscribirnos a los cambios en la lista de comidas

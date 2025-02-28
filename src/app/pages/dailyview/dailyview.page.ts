@@ -25,7 +25,7 @@ import { Platform } from '@ionic/angular';
     schemas: [CUSTOM_ELEMENTS_SCHEMA]
 
 })
-export class DailyviewPage implements OnInit, AfterViewInit {
+export class DailyViewPage implements OnInit, AfterViewInit {
 
     @ViewChild('gestureContainer', { static: true }) gestureContainer!: ElementRef;
     @ViewChild('mealCard', { read: ElementRef }) mealCard!: ElementRef;

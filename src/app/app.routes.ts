@@ -16,12 +16,12 @@ export const routes: Routes = [
       {
         path: 'daily',
         loadComponent: () =>
-          import('./pages/dailyview/dailyview.page').then((m) => m.DailyviewPage),
+          import('./pages/dailyview/dailyview.page').then((m) => m.DailyViewPage),
       },
       {
         path: 'daily/:day',
         loadComponent: () =>
-          import('./pages/dailyview/dailyview.page').then((m) => m.DailyviewPage),
+          import('./pages/dailyview/dailyview.page').then((m) => m.DailyViewPage),
       },
       {
         path: 'monthly',
@@ -31,7 +31,7 @@ export const routes: Routes = [
       {
         path: 'database', // <--- Aquí cargas mealdb.page, renombrado a "database"
         loadComponent: () =>
-          import('./pages/mealdb/mealdb.page').then((m) => m.MealdbPage),
+          import('./pages/mealdb/mealdb.page').then((m) => m.MealDbPage),
       },
       {
         path: '',
@@ -50,12 +50,12 @@ export const routes: Routes = [
   {
     path: 'mealform',
     loadComponent: () =>
-      import('./pages/mealform/mealform.page').then((m) => m.MealformPage),
+      import('./pages/mealform/mealform.page').then((m) => m.MealFormPage),
   },
   {
     path: 'mealform/:id',
     loadComponent: () =>
-      import('./pages/mealform/mealform.page').then((m) => m.MealformPage),
+      import('./pages/mealform/mealform.page').then((m) => m.MealFormPage),
   },
   {
     path: 'stats',
@@ -72,4 +72,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/checkbox-test/checkbox-test.page').then((m) => m.CheckboxTestPage),
   },
+
+
 ];
