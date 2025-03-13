@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Food Track</string>
     <string name="title_activity_main">Food Track</string>
-    <string name="package_name">com.jkperezstudio.foodtrack</string>
-    <string name="custom_url_scheme">com.jkperezstudio.foodtrack</string>
+    <string name="package_name">com.foodtrack.jkperezstudio</string>
+    <string name="custom_url_scheme">com.foodtrack.jkperezstudio</string>
 </resources>

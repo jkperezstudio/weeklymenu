@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.jkperezstudio.foodtrack"
+    namespace "com.foodtrack.jkperezstudio"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.jkperezstudio.foodtrack"
+        applicationId "com.foodtrack.jkperezstudio"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
